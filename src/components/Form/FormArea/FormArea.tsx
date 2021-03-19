@@ -1,4 +1,5 @@
 import React from "react";
+import { Booking } from "../Icons/Booking";
 
 export interface FormAreaProps {
   title: string;
@@ -10,15 +11,23 @@ export const FormArea: React.FC<FormAreaProps> = ({
   children
 }) => {
   return (
-    <div className="card" style={{ padding: "20px" }}>
-      <h4>
-        {icon && (
-          <span style={{ marginRight: "5px" }}>
-            <i className={icon + " icons-size-30px"} aria-hidden="true"></i>
-          </span>
-        )}
-        <span>{title}</span>
-      </h4>
+    <div
+      style={{
+        padding: "30px 20px 30px 20px",
+        backgroundColor: "white",
+        borderRadius: "10px"
+      }}
+    >
+      <div
+        style={{
+          fontSize: "1.2em",
+          fontWeight: 500,
+          marginBottom: "30px"
+        }}
+      >
+        <Booking size="1.2em" />
+        <span style={{ marginLeft: "10px" }}>{title}</span>
+      </div>
       {children}
     </div>
   );

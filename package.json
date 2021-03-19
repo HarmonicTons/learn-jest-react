@@ -55,6 +55,7 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.14.0",
+    "@material-ui/core": "^4.11.3",
     "@sncf/bootstrap-sncf.communication": "^4.3.1-r5",
     "@storybook/addon-knobs": "^6.1.21",
     "@testing-library/user-event": "^12.1.5",

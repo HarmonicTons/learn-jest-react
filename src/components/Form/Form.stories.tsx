@@ -4,9 +4,16 @@ import { Form } from "./Form";
 
 export default {
   title: "Form",
-  component: Form
+  component: Form,
+  parameters: {
+    backgrounds: {
+      default: "lightgrey",
+      values: [
+        { name: "lightgrey", value: "#eeeeee" },
+        { name: "white", value: "white" }
+      ]
+    }
+  }
 } as Meta;
 
-const Template: Story = args => <Form {...args} />;
-
-export const Primary = Template.bind({});
+export const Primary: Story = () => <Form />;
