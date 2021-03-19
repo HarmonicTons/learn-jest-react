@@ -55,9 +55,12 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.14.0",
+    "@sncf/bootstrap-sncf.communication": "^4.3.1-r5",
+    "@storybook/addon-knobs": "^6.1.21",
     "@testing-library/user-event": "^12.1.5",
     "@types/lodash": "^4.14.161",
     "axios": "^0.20.0",
+    "bootstrap": "^4.6.0",
     "lodash": "^4.17.20",
     "tslib": "^2.0.1"
   }
