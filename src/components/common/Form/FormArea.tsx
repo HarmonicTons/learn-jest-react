@@ -1,19 +1,19 @@
 import React from "react";
-import { Booking } from "../Icons/Booking";
 
 export interface FormAreaProps {
   title: string;
-  icon?: string;
+  Icon?: React.FC<{ size?: string }>;
 }
 export const FormArea: React.FC<FormAreaProps> = ({
   title,
-  icon,
+  Icon,
   children
 }) => {
   return (
     <div
       style={{
         padding: "30px 20px 30px 20px",
+        marginBottom: "20px",
         backgroundColor: "white",
         borderRadius: "10px"
       }}
@@ -25,7 +25,7 @@ export const FormArea: React.FC<FormAreaProps> = ({
           marginBottom: "30px"
         }}
       >
-        <Booking size="1.2em" />
+        {Icon && <Icon size="1.2em" />}
         <span style={{ marginLeft: "10px" }}>{title}</span>
       </div>
       {children}

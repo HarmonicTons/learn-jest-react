@@ -1,10 +1,10 @@
 import React from "react";
 import { Story, Meta } from "@storybook/react/types-6-0";
-import { Form } from "./Form";
+import { FormDemande, FormDemandeProps } from "./FormDemande";
 
 export default {
-  title: "Form",
-  component: Form,
+  title: "FormDemande",
+  component: FormDemande,
   parameters: {
     backgrounds: {
       default: "lightgrey",
@@ -16,4 +16,6 @@ export default {
   }
 } as Meta;
 
-export const Primary: Story = () => <Form />;
+export const Primary: Story<FormDemandeProps> = args => (
+  <FormDemande {...args} onSubmit={console.log} />
+);
