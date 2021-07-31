@@ -71,9 +71,12 @@ export class Simulator {
       this.fluidGrid.barrier[x + y * xdim] = true;
     }
 
-    console.log(this);
-
-    this.initFluid();
+    for (let y = 0; y < ydim; y++) {
+      for (let x = 0; x < xdim; x++) {
+        this.setEquil(x, y, this.fluidSpeed, 0, 1);
+        this.fluidGrid.curl[x + y * xdim] = 0.0;
+      }
+    }
   }
 
   start(): void {
@@ -300,17 +303,6 @@ export class Simulator {
           fluidGrid.uy[x - 1 + y * xdim] -
           fluidGrid.ux[x + (y + 1) * xdim] +
           fluidGrid.ux[x + (y - 1) * xdim];
-      }
-    }
-  }
-
-  initFluid(): void {
-    const { xdim, ydim } = this.fluidGrid;
-    // Amazingly, if I nest the y loop inside the x loop, Firefox slows down by a factor of 20
-    for (let y = 0; y < ydim; y++) {
-      for (let x = 0; x < xdim; x++) {
-        this.setEquil(x, y, this.fluidSpeed, 0, 1);
-        this.fluidGrid.curl[x + y * xdim] = 0.0;
       }
     }
   }
