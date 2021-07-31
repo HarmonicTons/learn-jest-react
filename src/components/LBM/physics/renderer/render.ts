@@ -1,3 +1,4 @@
+import { FluidGrid } from "../simulator/Simulator";
 import { ColorMap } from "./colorMap";
 
 // Color a grid square in the image data array, one pixel at a time (rgb each in range 0 to 255):
@@ -28,25 +29,6 @@ function colorSquare(
       image.data[index + 2] = b;
     }
   }
-}
-
-export interface FluidGrid {
-  xdim: number;
-  ydim: number;
-  n0: number[];
-  nN: number[];
-  nS: number[];
-  nE: number[];
-  nW: number[];
-  nNE: number[];
-  nSE: number[];
-  nNW: number[];
-  nSW: number[];
-  rho: number[];
-  ux: number[];
-  uy: number[];
-  curl: number[];
-  barrier: number[];
 }
 
 // Paint the canvas:

@@ -1,5 +1,6 @@
+import { FluidGrid } from "../simulator/Simulator";
 import { getColorMap } from "./colorMap";
-import { FluidGrid, render } from "./render";
+import { render } from "./render";
 
 export class Renderer {
   public isRunning = false;
