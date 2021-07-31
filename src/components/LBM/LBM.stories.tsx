@@ -1,13 +1,13 @@
 import React from "react";
 import { Story, Meta } from "@storybook/react/types-6-0";
-import { HelloWord } from "./HelloWord";
+import { LBM } from "./LBM";
 
 export default {
-  title: "HelloWord",
-  component: HelloWord
+  title: "LBM",
+  component: LBM
 } as Meta;
 
-const Template: Story = () => <HelloWord />;
+const Template: Story = () => <LBM />;
 
 export const Primary = Template.bind({});
 Primary.args = {};

@@ -1,2 +1,2 @@
-export * from "./HelloWord/HelloWord";
+export * from "./LBM/LBM";
 export * from "./FindRepo/FindRepo";
