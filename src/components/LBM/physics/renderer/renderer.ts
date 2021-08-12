@@ -10,6 +10,8 @@ export class Renderer {
   private image: ImageData;
   private simulator: Simulator;
   private contrast: number;
+  private lastTimeSteps: number[] = [];
+  private lastUpdateTimestamp = 0;
 
   constructor(canvas: HTMLCanvasElement, simulator: Simulator, contrast = 1) {
     const context = canvas.getContext("2d");
@@ -27,6 +29,14 @@ export class Renderer {
     ); // for direct pixel manipulation (faster than fillRect)
     for (let i = 3; i < this.image.data.length; i += 4)
       this.image.data[i] = 255;
+  }
+
+  get fps(): number {
+    return Math.round(
+      1000 /
+        (this.lastTimeSteps.reduce((acc, curr) => acc + curr, 0) /
+          this.lastTimeSteps.length)
+    );
   }
 
   start(): void {
@@ -47,8 +57,15 @@ export class Renderer {
       this.simulator.fluidGrid,
       this.context,
       this.image,
-      this.canvas
+      this.canvas,
+      this.fps
     );
+    const timestamp = Date.now();
+    this.lastTimeSteps.push(timestamp - this.lastUpdateTimestamp);
+    if (this.lastTimeSteps.length > 100) {
+      this.lastTimeSteps = this.lastTimeSteps.slice(1);
+    }
+    this.lastUpdateTimestamp = timestamp;
     if (this.isRunning) {
       requestAnimationFrame(() => this.renderLoop());
     }

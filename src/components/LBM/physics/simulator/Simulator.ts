@@ -24,20 +24,12 @@ export interface FluidGrid {
 export class Simulator {
   public isRunning = false;
   public fluidGrid: FluidGrid;
-  private stepsPerFrame: number;
   private fluidSpeed: number;
   private viscosity: number;
   private lastTimeSteps: number[] = [];
   private lastUpdateTimestamp = 0;
 
-  constructor(
-    xdim: number,
-    ydim: number,
-    stepsPerFrame = 20,
-    fluidSpeed = 0.1,
-    viscosity = 0.02
-  ) {
-    this.stepsPerFrame = stepsPerFrame;
+  constructor(xdim: number, ydim: number, fluidSpeed = 0.1, viscosity = 0.02) {
     this.fluidSpeed = fluidSpeed;
     this.viscosity = viscosity;
     this.fluidGrid = {
@@ -103,12 +95,10 @@ export class Simulator {
     this.setBoundaries();
     const { xdim, ydim } = this.fluidGrid;
 
-    // Execute a bunch of time steps:
-    for (let step = 0; step < this.stepsPerFrame; step++) {
-      this.collide();
-      this.stream();
-      this.computeCurl();
-    }
+    this.collide();
+    this.stream();
+    this.computeCurl();
+
     let stable = true;
     for (let x = 0; x < xdim; x++) {
       const index = x + (ydim / 2) * xdim; // look at middle row only
@@ -126,7 +116,7 @@ export class Simulator {
     }
     this.lastUpdateTimestamp = timestamp;
     if (this.isRunning) {
-      requestAnimationFrame(() => this.simulateLoop());
+      setImmediate(() => this.simulateLoop());
     }
   }
 
@@ -146,78 +136,63 @@ export class Simulator {
   collide(): void {
     const fluidGrid = this.fluidGrid;
     const { xdim, ydim } = fluidGrid;
-    const omega = 1 / (3 * this.viscosity + 0.5); // reciprocal of relaxation time
+    // reciprocal of relaxation time
+    const omega = 1 / (3 * this.viscosity + 0.5);
     for (let y = 1; y < ydim - 1; y++) {
       for (let x = 1; x < xdim - 1; x++) {
-        const i = x + y * xdim; // array index for this lattice site
-        const thisrho =
-          fluidGrid.n0[i] +
-          fluidGrid.nN[i] +
-          fluidGrid.nS[i] +
-          fluidGrid.nE[i] +
-          fluidGrid.nW[i] +
-          fluidGrid.nNW[i] +
-          fluidGrid.nNE[i] +
-          fluidGrid.nSW[i] +
-          fluidGrid.nSE[i];
-        fluidGrid.rho[i] = thisrho;
-        const thisux =
-          (fluidGrid.nE[i] +
-            fluidGrid.nNE[i] +
-            fluidGrid.nSE[i] -
-            fluidGrid.nW[i] -
-            fluidGrid.nNW[i] -
-            fluidGrid.nSW[i]) /
-          thisrho;
-        fluidGrid.ux[i] = thisux;
-        const thisuy =
-          (fluidGrid.nN[i] +
-            fluidGrid.nNE[i] +
-            fluidGrid.nNW[i] -
-            fluidGrid.nS[i] -
-            fluidGrid.nSE[i] -
-            fluidGrid.nSW[i]) /
-          thisrho;
-        fluidGrid.uy[i] = thisuy;
-        const one9thrho = one9th * thisrho; // pre-compute a bunch of stuff for optimization
-        const one36thrho = one36th * thisrho;
-        const ux3 = 3 * thisux;
-        const uy3 = 3 * thisuy;
-        const ux2 = thisux * thisux;
-        const uy2 = thisuy * thisuy;
-        const uxuy2 = 2 * thisux * thisuy;
+        // array index for this lattice site
+        const i = x + y * xdim;
+        const n0 = fluidGrid.n0[i];
+        const nN = fluidGrid.nN[i];
+        const nS = fluidGrid.nS[i];
+        const nE = fluidGrid.nE[i];
+        const nW = fluidGrid.nW[i];
+        const nNW = fluidGrid.nNW[i];
+        const nNE = fluidGrid.nNE[i];
+        const nSW = fluidGrid.nSW[i];
+        const nSE = fluidGrid.nSE[i];
+        const rho = n0 + nN + nS + nE + nW + nNW + nNE + nSW + nSE;
+        fluidGrid.rho[i] = rho;
+        const ux = (nE + nNE + nSE - nW - nNW - nSW) / rho;
+        fluidGrid.ux[i] = ux;
+        const uy = (nN + nNE + nNW - nS - nSE - nSW) / rho;
+        fluidGrid.uy[i] = uy;
+        // pre-compute a bunch of stuff for optimization
+        const one9thrho = rho / 9;
+        const one36thrho = rho / 36;
+        const ux3 = 3 * ux;
+        const uy3 = 3 * uy;
+        const ux2 = ux * ux;
+        const uy2 = uy * uy;
+        const uxuy2 = 2 * ux * uy;
         const u2 = ux2 + uy2;
         const u215 = 1.5 * u2;
-        fluidGrid.n0[i] +=
-          omega * (four9ths * thisrho * (1 - u215) - fluidGrid.n0[i]);
+        fluidGrid.n0[i] += omega * (four9ths * rho * (1 - u215) - n0);
         fluidGrid.nE[i] +=
-          omega * (one9thrho * (1 + ux3 + 4.5 * ux2 - u215) - fluidGrid.nE[i]);
+          omega * (one9thrho * (1 + ux3 + 4.5 * ux2 - u215) - nE);
         fluidGrid.nW[i] +=
-          omega * (one9thrho * (1 - ux3 + 4.5 * ux2 - u215) - fluidGrid.nW[i]);
+          omega * (one9thrho * (1 - ux3 + 4.5 * ux2 - u215) - nW);
         fluidGrid.nN[i] +=
-          omega * (one9thrho * (1 + uy3 + 4.5 * uy2 - u215) - fluidGrid.nN[i]);
+          omega * (one9thrho * (1 + uy3 + 4.5 * uy2 - u215) - nN);
         fluidGrid.nS[i] +=
-          omega * (one9thrho * (1 - uy3 + 4.5 * uy2 - u215) - fluidGrid.nS[i]);
+          omega * (one9thrho * (1 - uy3 + 4.5 * uy2 - u215) - nS);
         fluidGrid.nNE[i] +=
           omega *
-          (one36thrho * (1 + ux3 + uy3 + 4.5 * (u2 + uxuy2) - u215) -
-            fluidGrid.nNE[i]);
+          (one36thrho * (1 + ux3 + uy3 + 4.5 * (u2 + uxuy2) - u215) - nNE);
         fluidGrid.nSE[i] +=
           omega *
-          (one36thrho * (1 + ux3 - uy3 + 4.5 * (u2 - uxuy2) - u215) -
-            fluidGrid.nSE[i]);
+          (one36thrho * (1 + ux3 - uy3 + 4.5 * (u2 - uxuy2) - u215) - nSE);
         fluidGrid.nNW[i] +=
           omega *
-          (one36thrho * (1 - ux3 + uy3 + 4.5 * (u2 - uxuy2) - u215) -
-            fluidGrid.nNW[i]);
+          (one36thrho * (1 - ux3 + uy3 + 4.5 * (u2 - uxuy2) - u215) - nNW);
         fluidGrid.nSW[i] +=
           omega *
-          (one36thrho * (1 - ux3 - uy3 + 4.5 * (u2 + uxuy2) - u215) -
-            fluidGrid.nSW[i]);
+          (one36thrho * (1 - ux3 - uy3 + 4.5 * (u2 + uxuy2) - u215) - nSW);
       }
     }
     for (let y = 1; y < ydim - 2; y++) {
-      fluidGrid.nW[xdim - 1 + y * xdim] = fluidGrid.nW[xdim - 2 + y * xdim]; // at right end, copy left-flowing densities from next row to the left
+      // at right end, copy left-flowing densities from next row to the left
+      fluidGrid.nW[xdim - 1 + y * xdim] = fluidGrid.nW[xdim - 2 + y * xdim];
       fluidGrid.nNW[xdim - 1 + y * xdim] = fluidGrid.nNW[xdim - 2 + y * xdim];
       fluidGrid.nSW[xdim - 1 + y * xdim] = fluidGrid.nSW[xdim - 2 + y * xdim];
     }

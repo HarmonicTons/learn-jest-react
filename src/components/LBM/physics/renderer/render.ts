@@ -35,7 +35,8 @@ export function render(
   fluidGrid: FluidGrid,
   context: CanvasRenderingContext2D,
   image: ImageData,
-  canvas: HTMLCanvasElement
+  canvas: HTMLCanvasElement,
+  fps: number
 ): void {
   let cIndex = 0;
   const { nColors } = colorMap;
@@ -86,5 +87,6 @@ export function render(
   createImageBitmap(image).then(function(imgBitmap) {
     context.drawImage(imgBitmap, 0, 0, canvas.width, canvas.height);
     context.fillText(`UPS: ${simulator.ups}`, 5, 10);
+    context.fillText(`FPS: ${fps}`, 5, 25);
   });
 }
