@@ -1,4 +1,4 @@
-import { FluidGrid } from "../simulator/Simulator";
+import { FluidGrid, Simulator } from "../simulator/Simulator";
 import { ColorMap } from "./colorMap";
 
 // Color a grid square in the image data array, one pixel at a time (rgb each in range 0 to 255):
@@ -9,7 +9,6 @@ function colorSquare(
   g: number,
   b: number,
   ydim: number,
-  pxPerSquare: number,
   image: ImageData
 ) {
   //function colorSquare(x, y, cIndex) {		// for some strange reason, this version is quite a bit slower on Chrome
@@ -17,12 +16,8 @@ function colorSquare(
   //let g = greenList[cIndex];
   //let b = blueList[cIndex];
   const flippedy = ydim - y - 1; // put y=0 at the bottom
-  for (
-    let py = flippedy * pxPerSquare;
-    py < (flippedy + 1) * pxPerSquare;
-    py++
-  ) {
-    for (let px = x * pxPerSquare; px < (x + 1) * pxPerSquare; px++) {
+  for (let py = flippedy; py < flippedy + 1; py++) {
+    for (let px = x; px < x + 1; px++) {
       const index = (px + py * image.width) * 4;
       image.data[index + 0] = r;
       image.data[index + 1] = g;
@@ -36,10 +31,11 @@ export function render(
   colorMap: ColorMap,
   contrast: number,
   plotType: number,
+  simulator: Simulator,
   fluidGrid: FluidGrid,
   context: CanvasRenderingContext2D,
   image: ImageData,
-  pxPerSquare: number
+  canvas: HTMLCanvasElement
 ): void {
   let cIndex = 0;
   const { nColors } = colorMap;
@@ -82,11 +78,13 @@ export function render(
         colorMap.greenList[cIndex],
         colorMap.blueList[cIndex],
         ydim,
-        pxPerSquare,
         image
       );
     }
   }
   //if (pixelGraphics)
-  context.putImageData(image, 0, 0); // blast image to the screen
+  createImageBitmap(image).then(function(imgBitmap) {
+    context.drawImage(imgBitmap, 0, 0, canvas.width, canvas.height);
+    context.fillText(`UPS: ${simulator.ups}`, 5, 10);
+  });
 }

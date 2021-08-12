@@ -11,11 +11,11 @@ export const LBM = (): JSX.Element => {
       return;
     }
 
-    const xdim = 50;
-    const ydim = 20;
+    const xdim = 200;
+    const ydim = 80;
 
     const simulator = new Simulator(xdim, ydim);
-    const renderer = new Renderer(canvas, simulator.fluidGrid);
+    const renderer = new Renderer(canvas, simulator);
 
     renderer.start();
     simulator.start();
@@ -25,7 +25,7 @@ export const LBM = (): JSX.Element => {
     };
   }, []);
 
-  return <canvas ref={canvasRef} width="500" height="200" />;
+  return <canvas ref={canvasRef} width="800" height="320" />;
 };
 
 export default LBM;

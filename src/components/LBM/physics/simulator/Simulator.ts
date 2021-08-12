@@ -27,6 +27,8 @@ export class Simulator {
   private stepsPerFrame: number;
   private fluidSpeed: number;
   private viscosity: number;
+  private lastTimeSteps: number[] = [];
+  private lastUpdateTimestamp = 0;
 
   constructor(
     xdim: number,
@@ -65,9 +67,9 @@ export class Simulator {
     }
 
     // Create a simple linear "wall" barrier (intentionally a little offset from center):
-    const barrierSize = 3;
+    const barrierSize = 8;
     for (let y = ydim / 2 - barrierSize; y <= ydim / 2 + barrierSize; y++) {
-      const x = 10;
+      const x = 27;
       this.fluidGrid.barrier[x + y * xdim] = true;
     }
 
@@ -79,8 +81,17 @@ export class Simulator {
     }
   }
 
+  get ups(): number {
+    return Math.round(
+      1000 /
+        (this.lastTimeSteps.reduce((acc, curr) => acc + curr, 0) /
+          this.lastTimeSteps.length)
+    );
+  }
+
   start(): void {
     this.isRunning = true;
+    this.lastUpdateTimestamp = Date.now();
     this.simulateLoop();
   }
 
@@ -108,6 +119,12 @@ export class Simulator {
         "The simulation has become unstable due to excessive fluid speeds."
       );
     }
+    const timestamp = Date.now();
+    this.lastTimeSteps.push(timestamp - this.lastUpdateTimestamp);
+    if (this.lastTimeSteps.length > 100) {
+      this.lastTimeSteps = this.lastTimeSteps.slice(1);
+    }
+    this.lastUpdateTimestamp = timestamp;
     if (this.isRunning) {
       requestAnimationFrame(() => this.simulateLoop());
     }

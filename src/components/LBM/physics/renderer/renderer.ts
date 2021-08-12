@@ -1,29 +1,32 @@
-import { FluidGrid } from "../simulator/Simulator";
+import { Simulator } from "../simulator/Simulator";
 import { getColorMap } from "./colorMap";
 import { render } from "./render";
 
 export class Renderer {
   public isRunning = false;
   private colorMap = getColorMap();
+  private canvas: HTMLCanvasElement;
   private context: CanvasRenderingContext2D;
   private image: ImageData;
-  private pxPerSquare: number;
-  private fluidGrid: FluidGrid;
+  private simulator: Simulator;
   private contrast: number;
 
-  constructor(canvas: HTMLCanvasElement, fluidGrid: FluidGrid, contrast = 1) {
+  constructor(canvas: HTMLCanvasElement, simulator: Simulator, contrast = 1) {
     const context = canvas.getContext("2d");
     if (!context) {
       throw new Error("No 2D Context");
     }
-    this.fluidGrid = fluidGrid;
+    context.imageSmoothingEnabled = false;
+    this.canvas = canvas;
+    this.simulator = simulator;
     this.contrast = contrast;
     this.context = context;
-    this.image = context.createImageData(canvas.width, canvas.height); // for direct pixel manipulation (faster than fillRect)
+    this.image = context.createImageData(
+      simulator.fluidGrid.xdim,
+      simulator.fluidGrid.ydim
+    ); // for direct pixel manipulation (faster than fillRect)
     for (let i = 3; i < this.image.data.length; i += 4)
       this.image.data[i] = 255;
-
-    this.pxPerSquare = canvas.width / fluidGrid.xdim;
   }
 
   start(): void {
@@ -40,10 +43,11 @@ export class Renderer {
       this.colorMap,
       this.contrast,
       4,
-      this.fluidGrid,
+      this.simulator,
+      this.simulator.fluidGrid,
       this.context,
       this.image,
-      this.pxPerSquare
+      this.canvas
     );
     if (this.isRunning) {
       requestAnimationFrame(() => this.renderLoop());
