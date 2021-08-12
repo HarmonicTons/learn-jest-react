@@ -43,9 +43,18 @@ export const getColorMap = (nColors = 400): ColorMap => {
     colorMap.greenList[c] = g;
     colorMap.blueList[c] = b;
   }
+  // balck barriers
   colorMap.redList[nColors + 1] = 0;
   colorMap.greenList[nColors + 1] = 0;
-  colorMap.blueList[nColors + 1] = 0; // barriers are black
+  colorMap.blueList[nColors + 1] = 255;
+  // red interface
+  colorMap.redList[nColors + 2] = 255;
+  colorMap.greenList[nColors + 2] = 0;
+  colorMap.blueList[nColors + 2] = 0;
+  // white gas
+  colorMap.redList[nColors + 3] = 255;
+  colorMap.greenList[nColors + 3] = 255;
+  colorMap.blueList[nColors + 3] = 255;
 
   return colorMap;
 };

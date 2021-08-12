@@ -1,6 +1,6 @@
 import { Simulator } from "../simulator/Simulator";
 import { getColorMap } from "./colorMap";
-import { render } from "./render";
+import { PlotTypes, render } from "./render";
 
 export class Renderer {
   public isRunning = false;
@@ -52,7 +52,7 @@ export class Renderer {
     render(
       this.colorMap,
       this.contrast,
-      4,
+      PlotTypes.ux,
       this.simulator,
       this.simulator.fluidGrid,
       this.context,

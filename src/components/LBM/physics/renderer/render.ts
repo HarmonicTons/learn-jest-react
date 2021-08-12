@@ -1,6 +1,14 @@
 import { Flags, FluidGrid, Simulator } from "../simulator/Simulator";
 import { ColorMap } from "./colorMap";
 
+export enum PlotTypes {
+  rho = "rho",
+  ux = "ux",
+  uy = "uy",
+  speed = "speed",
+  curl = "curl"
+}
+
 // Color a grid square in the image data array, one pixel at a time (rgb each in range 0 to 255):
 function colorSquare(
   x: number,
@@ -30,7 +38,7 @@ function colorSquare(
 export function render(
   colorMap: ColorMap,
   contrast: number,
-  plotType: number,
+  plotType: PlotTypes,
   simulator: Simulator,
   fluidGrid: FluidGrid,
   context: CanvasRenderingContext2D,
@@ -43,22 +51,28 @@ export function render(
   const { xdim, ydim } = fluidGrid;
   for (let y = 0; y < ydim; y++) {
     for (let x = 0; x < xdim; x++) {
-      if (fluidGrid.flag[x + y * xdim] === Flags.barrier) {
-        cIndex = nColors + 1; // kludge for barrier color which isn't really part of color map
+      const flag = fluidGrid.flag[x + y * xdim];
+      if (flag === Flags.barrier) {
+        // kludge for barrier color which isn't really part of color map
+        cIndex = nColors + 1;
+      } else if (flag === Flags.gas) {
+        cIndex = nColors + 3;
+      } else if (flag === Flags.interface) {
+        cIndex = nColors + 2;
       } else {
-        if (plotType == 0) {
+        if (plotType == PlotTypes.rho) {
           cIndex = Math.round(
             nColors * ((fluidGrid.rho[x + y * xdim] - 1) * 6 * contrast + 0.5)
           );
-        } else if (plotType == 1) {
+        } else if (plotType == PlotTypes.ux) {
           cIndex = Math.round(
             nColors * (fluidGrid.ux[x + y * xdim] * 2 * contrast + 0.5)
           );
-        } else if (plotType == 2) {
+        } else if (plotType == PlotTypes.uy) {
           cIndex = Math.round(
             nColors * (fluidGrid.uy[x + y * xdim] * 2 * contrast + 0.5)
           );
-        } else if (plotType == 3) {
+        } else if (plotType == PlotTypes.speed) {
           const speed = Math.sqrt(
             fluidGrid.ux[x + y * xdim] * fluidGrid.ux[x + y * xdim] +
               fluidGrid.uy[x + y * xdim] * fluidGrid.uy[x + y * xdim]
