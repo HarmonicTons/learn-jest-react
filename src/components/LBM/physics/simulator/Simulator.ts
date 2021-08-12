@@ -2,6 +2,13 @@ const four9ths = 4.0 / 9.0; // abbreviations
 const one9th = 1.0 / 9.0;
 const one36th = 1.0 / 36.0;
 
+export enum Flags {
+  barrier = "barrier",
+  fluid = "fluid",
+  gas = "gas",
+  interface = "interface"
+}
+
 export interface FluidGrid {
   xdim: number;
   ydim: number;
@@ -18,7 +25,7 @@ export interface FluidGrid {
   ux: number[];
   uy: number[];
   curl: number[];
-  barrier: boolean[];
+  flag: Flags[];
 }
 
 export class Simulator {
@@ -48,13 +55,13 @@ export class Simulator {
       ux: new Array(xdim * ydim), // macroscopic velocity
       uy: new Array(xdim * ydim),
       curl: new Array(xdim * ydim),
-      barrier: new Array(xdim * ydim) // boolean array of barrier locations
+      flag: new Array(xdim * ydim)
     };
 
     // Initialize to a steady rightward flow with no barriers:
     for (let y = 0; y < ydim; y++) {
       for (let x = 0; x < xdim; x++) {
-        this.fluidGrid.barrier[x + y * xdim] = false;
+        this.fluidGrid.flag[x + y * xdim] = Flags.fluid;
       }
     }
 
@@ -62,7 +69,7 @@ export class Simulator {
     const barrierSize = 8;
     for (let y = ydim / 2 - barrierSize; y <= ydim / 2 + barrierSize; y++) {
       const x = 27;
-      this.fluidGrid.barrier[x + y * xdim] = true;
+      this.fluidGrid.flag[x + y * xdim] = Flags.barrier;
     }
 
     for (let y = 0; y < ydim; y++) {
@@ -134,29 +141,29 @@ export class Simulator {
   }
 
   collide(): void {
-    const fluidGrid = this.fluidGrid;
-    const { xdim, ydim } = fluidGrid;
+    const fg = this.fluidGrid;
+    const { xdim, ydim } = fg;
     // reciprocal of relaxation time
     const omega = 1 / (3 * this.viscosity + 0.5);
     for (let y = 1; y < ydim - 1; y++) {
       for (let x = 1; x < xdim - 1; x++) {
         // array index for this lattice site
         const i = x + y * xdim;
-        const n0 = fluidGrid.n0[i];
-        const nN = fluidGrid.nN[i];
-        const nS = fluidGrid.nS[i];
-        const nE = fluidGrid.nE[i];
-        const nW = fluidGrid.nW[i];
-        const nNW = fluidGrid.nNW[i];
-        const nNE = fluidGrid.nNE[i];
-        const nSW = fluidGrid.nSW[i];
-        const nSE = fluidGrid.nSE[i];
+        const n0 = fg.n0[i];
+        const nN = fg.nN[i];
+        const nS = fg.nS[i];
+        const nE = fg.nE[i];
+        const nW = fg.nW[i];
+        const nNW = fg.nNW[i];
+        const nNE = fg.nNE[i];
+        const nSW = fg.nSW[i];
+        const nSE = fg.nSE[i];
         const rho = n0 + nN + nS + nE + nW + nNW + nNE + nSW + nSE;
-        fluidGrid.rho[i] = rho;
+        fg.rho[i] = rho;
         const ux = (nE + nNE + nSE - nW - nNW - nSW) / rho;
-        fluidGrid.ux[i] = ux;
+        fg.ux[i] = ux;
         const uy = (nN + nNE + nNW - nS - nSE - nSW) / rho;
-        fluidGrid.uy[i] = uy;
+        fg.uy[i] = uy;
         // pre-compute a bunch of stuff for optimization
         const one9thrho = rho / 9;
         const one36thrho = rho / 36;
@@ -167,81 +174,77 @@ export class Simulator {
         const uxuy2 = 2 * ux * uy;
         const u2 = ux2 + uy2;
         const u215 = 1.5 * u2;
-        fluidGrid.n0[i] += omega * (four9ths * rho * (1 - u215) - n0);
-        fluidGrid.nE[i] +=
-          omega * (one9thrho * (1 + ux3 + 4.5 * ux2 - u215) - nE);
-        fluidGrid.nW[i] +=
-          omega * (one9thrho * (1 - ux3 + 4.5 * ux2 - u215) - nW);
-        fluidGrid.nN[i] +=
-          omega * (one9thrho * (1 + uy3 + 4.5 * uy2 - u215) - nN);
-        fluidGrid.nS[i] +=
-          omega * (one9thrho * (1 - uy3 + 4.5 * uy2 - u215) - nS);
-        fluidGrid.nNE[i] +=
+        fg.n0[i] += omega * (four9ths * rho * (1 - u215) - n0);
+        fg.nE[i] += omega * (one9thrho * (1 + ux3 + 4.5 * ux2 - u215) - nE);
+        fg.nW[i] += omega * (one9thrho * (1 - ux3 + 4.5 * ux2 - u215) - nW);
+        fg.nN[i] += omega * (one9thrho * (1 + uy3 + 4.5 * uy2 - u215) - nN);
+        fg.nS[i] += omega * (one9thrho * (1 - uy3 + 4.5 * uy2 - u215) - nS);
+        fg.nNE[i] +=
           omega *
           (one36thrho * (1 + ux3 + uy3 + 4.5 * (u2 + uxuy2) - u215) - nNE);
-        fluidGrid.nSE[i] +=
+        fg.nSE[i] +=
           omega *
           (one36thrho * (1 + ux3 - uy3 + 4.5 * (u2 - uxuy2) - u215) - nSE);
-        fluidGrid.nNW[i] +=
+        fg.nNW[i] +=
           omega *
           (one36thrho * (1 - ux3 + uy3 + 4.5 * (u2 - uxuy2) - u215) - nNW);
-        fluidGrid.nSW[i] +=
+        fg.nSW[i] +=
           omega *
           (one36thrho * (1 - ux3 - uy3 + 4.5 * (u2 + uxuy2) - u215) - nSW);
       }
     }
     for (let y = 1; y < ydim - 2; y++) {
       // at right end, copy left-flowing densities from next row to the left
-      fluidGrid.nW[xdim - 1 + y * xdim] = fluidGrid.nW[xdim - 2 + y * xdim];
-      fluidGrid.nNW[xdim - 1 + y * xdim] = fluidGrid.nNW[xdim - 2 + y * xdim];
-      fluidGrid.nSW[xdim - 1 + y * xdim] = fluidGrid.nSW[xdim - 2 + y * xdim];
+      fg.nW[xdim - 1 + y * xdim] = fg.nW[xdim - 2 + y * xdim];
+      fg.nNW[xdim - 1 + y * xdim] = fg.nNW[xdim - 2 + y * xdim];
+      fg.nSW[xdim - 1 + y * xdim] = fg.nSW[xdim - 2 + y * xdim];
     }
   }
 
   stream(): void {
-    const fluidGrid = this.fluidGrid;
-    const { xdim, ydim } = fluidGrid;
+    const fg = this.fluidGrid;
+    const { xdim, ydim } = fg;
     for (let y = ydim - 2; y > 0; y--) {
       // first start in NW corner...
       for (let x = 1; x < xdim - 1; x++) {
-        fluidGrid.nN[x + y * xdim] = fluidGrid.nN[x + (y - 1) * xdim]; // move the north-moving particles
-        fluidGrid.nNW[x + y * xdim] = fluidGrid.nNW[x + 1 + (y - 1) * xdim]; // and the northwest-moving particles
+        fg.nN[x + y * xdim] = fg.nN[x + (y - 1) * xdim]; // move the north-moving particles
+        fg.nNW[x + y * xdim] = fg.nNW[x + 1 + (y - 1) * xdim]; // and the northwest-moving particles
       }
     }
     for (let y = ydim - 2; y > 0; y--) {
       // now start in NE corner...
       for (let x = xdim - 2; x > 0; x--) {
-        fluidGrid.nE[x + y * xdim] = fluidGrid.nE[x - 1 + y * xdim]; // move the east-moving particles
-        fluidGrid.nNE[x + y * xdim] = fluidGrid.nNE[x - 1 + (y - 1) * xdim]; // and the northeast-moving particles
+        fg.nE[x + y * xdim] = fg.nE[x - 1 + y * xdim]; // move the east-moving particles
+        fg.nNE[x + y * xdim] = fg.nNE[x - 1 + (y - 1) * xdim]; // and the northeast-moving particles
       }
     }
     for (let y = 1; y < ydim - 1; y++) {
       // now start in SE corner...
       for (let x = xdim - 2; x > 0; x--) {
-        fluidGrid.nS[x + y * xdim] = fluidGrid.nS[x + (y + 1) * xdim]; // move the south-moving particles
-        fluidGrid.nSE[x + y * xdim] = fluidGrid.nSE[x - 1 + (y + 1) * xdim]; // and the southeast-moving particles
+        fg.nS[x + y * xdim] = fg.nS[x + (y + 1) * xdim]; // move the south-moving particles
+        fg.nSE[x + y * xdim] = fg.nSE[x - 1 + (y + 1) * xdim]; // and the southeast-moving particles
       }
     }
     for (let y = 1; y < ydim - 1; y++) {
       // now start in the SW corner...
       for (let x = 1; x < xdim - 1; x++) {
-        fluidGrid.nW[x + y * xdim] = fluidGrid.nW[x + 1 + y * xdim]; // move the west-moving particles
-        fluidGrid.nSW[x + y * xdim] = fluidGrid.nSW[x + 1 + (y + 1) * xdim]; // and the southwest-moving particles
+        fg.nW[x + y * xdim] = fg.nW[x + 1 + y * xdim]; // move the west-moving particles
+        fg.nSW[x + y * xdim] = fg.nSW[x + 1 + (y + 1) * xdim]; // and the southwest-moving particles
       }
     }
     for (let y = 1; y < ydim - 1; y++) {
       // Now handle bounce-back from barriers
       for (let x = 1; x < xdim - 1; x++) {
-        if (fluidGrid.barrier[x + y * xdim]) {
+        if (fg.flag[x + y * xdim] === Flags.barrier) {
           const index = x + y * xdim;
-          fluidGrid.nE[x + 1 + y * xdim] = fluidGrid.nW[index];
-          fluidGrid.nW[x - 1 + y * xdim] = fluidGrid.nE[index];
-          fluidGrid.nN[x + (y + 1) * xdim] = fluidGrid.nS[index];
-          fluidGrid.nS[x + (y - 1) * xdim] = fluidGrid.nN[index];
-          fluidGrid.nNE[x + 1 + (y + 1) * xdim] = fluidGrid.nSW[index];
-          fluidGrid.nNW[x - 1 + (y + 1) * xdim] = fluidGrid.nSE[index];
-          fluidGrid.nSE[x + 1 + (y - 1) * xdim] = fluidGrid.nNW[index];
-          fluidGrid.nSW[x - 1 + (y - 1) * xdim] = fluidGrid.nNE[index];
+          fg.nE[x + 1 + y * xdim] = fg.nW[index];
+          fg.nW[x - 1 + y * xdim] = fg.nE[index];
+          fg.nN[x + (y + 1) * xdim] = fg.nS[index];
+          fg.nS[x + (y - 1) * xdim] = fg.nN[index];
+          fg.nNE[x + 1 + (y + 1) * xdim] = fg.nSW[index];
+          fg.nNW[x - 1 + (y + 1) * xdim] = fg.nSE[index];
+          fg.nSE[x + 1 + (y - 1) * xdim] = fg.nNW[index];
+          fg.nSW[x - 1 + (y - 1) * xdim] = fg.nNE[index];
           // Keep track of stuff needed to plot force vector:
         }
       }
@@ -255,10 +258,10 @@ export class Simulator {
     newuy: number,
     optionalNewRho?: number
   ): void {
-    const fluidGrid = this.fluidGrid;
-    const { xdim } = fluidGrid;
+    const fg = this.fluidGrid;
+    const { xdim } = fg;
     const i = x + y * xdim;
-    const newrho = optionalNewRho ?? fluidGrid.rho[i];
+    const newrho = optionalNewRho ?? fg.rho[i];
     const ux3 = 3 * newux;
     const uy3 = 3 * newuy;
     const ux2 = newux * newux;
@@ -266,35 +269,31 @@ export class Simulator {
     const uxuy2 = 2 * newux * newuy;
     const u2 = ux2 + uy2;
     const u215 = 1.5 * u2;
-    fluidGrid.n0[i] = four9ths * newrho * (1 - u215);
-    fluidGrid.nE[i] = one9th * newrho * (1 + ux3 + 4.5 * ux2 - u215);
-    fluidGrid.nW[i] = one9th * newrho * (1 - ux3 + 4.5 * ux2 - u215);
-    fluidGrid.nN[i] = one9th * newrho * (1 + uy3 + 4.5 * uy2 - u215);
-    fluidGrid.nS[i] = one9th * newrho * (1 - uy3 + 4.5 * uy2 - u215);
-    fluidGrid.nNE[i] =
-      one36th * newrho * (1 + ux3 + uy3 + 4.5 * (u2 + uxuy2) - u215);
-    fluidGrid.nSE[i] =
-      one36th * newrho * (1 + ux3 - uy3 + 4.5 * (u2 - uxuy2) - u215);
-    fluidGrid.nNW[i] =
-      one36th * newrho * (1 - ux3 + uy3 + 4.5 * (u2 - uxuy2) - u215);
-    fluidGrid.nSW[i] =
-      one36th * newrho * (1 - ux3 - uy3 + 4.5 * (u2 + uxuy2) - u215);
-    fluidGrid.rho[i] = newrho;
-    fluidGrid.ux[i] = newux;
-    fluidGrid.uy[i] = newuy;
+    fg.n0[i] = four9ths * newrho * (1 - u215);
+    fg.nE[i] = one9th * newrho * (1 + ux3 + 4.5 * ux2 - u215);
+    fg.nW[i] = one9th * newrho * (1 - ux3 + 4.5 * ux2 - u215);
+    fg.nN[i] = one9th * newrho * (1 + uy3 + 4.5 * uy2 - u215);
+    fg.nS[i] = one9th * newrho * (1 - uy3 + 4.5 * uy2 - u215);
+    fg.nNE[i] = one36th * newrho * (1 + ux3 + uy3 + 4.5 * (u2 + uxuy2) - u215);
+    fg.nSE[i] = one36th * newrho * (1 + ux3 - uy3 + 4.5 * (u2 - uxuy2) - u215);
+    fg.nNW[i] = one36th * newrho * (1 - ux3 + uy3 + 4.5 * (u2 - uxuy2) - u215);
+    fg.nSW[i] = one36th * newrho * (1 - ux3 - uy3 + 4.5 * (u2 + uxuy2) - u215);
+    fg.rho[i] = newrho;
+    fg.ux[i] = newux;
+    fg.uy[i] = newuy;
   }
 
   computeCurl(): void {
-    const fluidGrid = this.fluidGrid;
-    const { xdim, ydim } = fluidGrid;
+    const fg = this.fluidGrid;
+    const { xdim, ydim } = fg;
     for (let y = 1; y < ydim - 1; y++) {
       // interior sites only; leave edges set to zero
       for (let x = 1; x < xdim - 1; x++) {
-        fluidGrid.curl[x + y * xdim] =
-          fluidGrid.uy[x + 1 + y * xdim] -
-          fluidGrid.uy[x - 1 + y * xdim] -
-          fluidGrid.ux[x + (y + 1) * xdim] +
-          fluidGrid.ux[x + (y - 1) * xdim];
+        fg.curl[x + y * xdim] =
+          fg.uy[x + 1 + y * xdim] -
+          fg.uy[x - 1 + y * xdim] -
+          fg.ux[x + (y + 1) * xdim] +
+          fg.ux[x + (y - 1) * xdim];
       }
     }
   }

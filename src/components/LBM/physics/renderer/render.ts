@@ -1,4 +1,4 @@
-import { FluidGrid, Simulator } from "../simulator/Simulator";
+import { Flags, FluidGrid, Simulator } from "../simulator/Simulator";
 import { ColorMap } from "./colorMap";
 
 // Color a grid square in the image data array, one pixel at a time (rgb each in range 0 to 255):
@@ -43,7 +43,7 @@ export function render(
   const { xdim, ydim } = fluidGrid;
   for (let y = 0; y < ydim; y++) {
     for (let x = 0; x < xdim; x++) {
-      if (fluidGrid.barrier[x + y * xdim]) {
+      if (fluidGrid.flag[x + y * xdim] === Flags.barrier) {
         cIndex = nColors + 1; // kludge for barrier color which isn't really part of color map
       } else {
         if (plotType == 0) {
