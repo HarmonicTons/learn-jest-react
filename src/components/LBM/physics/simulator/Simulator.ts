@@ -92,18 +92,18 @@ export class Simulator {
       }
     }
 
-    // gas
-    for (let y = Math.floor(ydim / 2); y < ydim; y++) {
-      for (let x = 0; x < xdim; x++) {
-        this.fluidGrid.flag[x + y * xdim] = Flags.gas;
-      }
-    }
+    // // gas
+    // for (let y = Math.floor(ydim / 2); y < ydim; y++) {
+    //   for (let x = 0; x < xdim; x++) {
+    //     this.fluidGrid.flag[x + y * xdim] = Flags.gas;
+    //   }
+    // }
 
-    // interface
-    for (let x = 0; x < xdim; x++) {
-      const y = Math.floor(ydim / 2);
-      this.fluidGrid.flag[x + y * xdim] = Flags.interface;
-    }
+    // // interface
+    // for (let x = 0; x < xdim; x++) {
+    //   const y = Math.floor(ydim / 2);
+    //   this.fluidGrid.flag[x + y * xdim] = Flags.interface;
+    // }
 
     // Create a simple linear "wall" barrier (intentionally a little offset from center):
     const barrierSize = 8;
@@ -197,7 +197,7 @@ export class Simulator {
       for (let x = 1; x < xdim - 1; x++) {
         // array index for this lattice site
         const i = x + y * xdim;
-        if (fg.flag[i] !== Flags.fluid) {
+        if (fg.flag[i] !== Flags.fluid && fg.flag[i] !== Flags.interface) {
           continue;
         }
         const n0 = fg.n0[i];
@@ -263,34 +263,56 @@ export class Simulator {
     newFg.curl = fg.curl;
     newFg.flag = fg.flag;
 
+    // copy previous values
     for (let y = 0; y < ydim; y++) {
       for (let x = 0; x < xdim; x++) {
-        if (y === 0 || y === ydim || x === 0 || x === xdim) {
-          continue;
-        }
-        newFg.nN[x + y * xdim] = fg.nN[x + (y - 1) * xdim]; // move the north-moving particles
-        newFg.nNW[x + y * xdim] = fg.nNW[x + 1 + (y - 1) * xdim]; // and the northwest-moving particles
-        newFg.nE[x + y * xdim] = fg.nE[x - 1 + y * xdim]; // move the east-moving particles
-        newFg.nNE[x + y * xdim] = fg.nNE[x - 1 + (y - 1) * xdim]; // and the northeast-moving particles
-        newFg.nS[x + y * xdim] = fg.nS[x + (y + 1) * xdim]; // move the south-moving particles
-        newFg.nSE[x + y * xdim] = fg.nSE[x - 1 + (y + 1) * xdim]; // and the southeast-moving particles
-        newFg.nW[x + y * xdim] = fg.nW[x + 1 + y * xdim]; // move the west-moving particles
-        newFg.nSW[x + y * xdim] = fg.nSW[x + 1 + (y + 1) * xdim]; // and the southwest-moving particles
-
-        if (fg.flag[x + y * xdim] === Flags.barrier) {
-          const index = x + y * xdim;
-          newFg.nE[x + 1 + y * xdim] = newFg.nW[index];
-          newFg.nW[x - 1 + y * xdim] = newFg.nE[index];
-          newFg.nN[x + (y + 1) * xdim] = newFg.nS[index];
-          newFg.nS[x + (y - 1) * xdim] = newFg.nN[index];
-          newFg.nNE[x + 1 + (y + 1) * xdim] = newFg.nSW[index];
-          newFg.nNW[x - 1 + (y + 1) * xdim] = newFg.nSE[index];
-          newFg.nSE[x + 1 + (y - 1) * xdim] = newFg.nNW[index];
-          newFg.nSW[x - 1 + (y - 1) * xdim] = newFg.nNE[index];
-        }
+        const i = x + y * xdim;
+        newFg.nN[i] = fg.nN[i];
+        newFg.nNW[i] = fg.nNW[i];
+        newFg.nE[i] = fg.nE[i];
+        newFg.nNE[i] = fg.nNE[i];
+        newFg.nS[i] = fg.nS[i];
+        newFg.nSE[i] = fg.nSE[i];
+        newFg.nW[i] = fg.nW[i];
+        newFg.nSW[i] = fg.nSW[i];
       }
     }
-    //console.log(newFg);
+
+    // stream from fluid
+    for (let y = 0; y < ydim; y++) {
+      for (let x = 0; x < xdim; x++) {
+        const i = x + y * xdim;
+        if (fg.flag[i] !== Flags.fluid) {
+          continue;
+        }
+        newFg.nN[x + (y + 1) * xdim] = fg.nN[i];
+        newFg.nNW[x - 1 + (y + 1) * xdim] = fg.nNW[i];
+        newFg.nE[x + 1 + y * xdim] = fg.nE[i];
+        newFg.nNE[x + 1 + (y + 1) * xdim] = fg.nNE[i];
+        newFg.nS[x + (y - 1) * xdim] = fg.nS[i];
+        newFg.nSE[x + 1 + (y - 1) * xdim] = fg.nSE[i];
+        newFg.nW[x - 1 + y * xdim] = fg.nW[i];
+        newFg.nSW[x - 1 + (y - 1) * xdim] = fg.nSW[i];
+      }
+    }
+    // bounce back from barriers
+    for (let y = 0; y < ydim; y++) {
+      for (let x = 0; x < xdim; x++) {
+        const i = x + y * xdim;
+        if (fg.flag[i] !== Flags.barrier) {
+          continue;
+        }
+        newFg.nE[x + 1 + y * xdim] = newFg.nW[i];
+        newFg.nW[x - 1 + y * xdim] = newFg.nE[i];
+        newFg.nN[x + (y + 1) * xdim] = newFg.nS[i];
+        newFg.nS[x + (y - 1) * xdim] = newFg.nN[i];
+        newFg.nNE[x + 1 + (y + 1) * xdim] = newFg.nSW[i];
+        newFg.nNW[x - 1 + (y + 1) * xdim] = newFg.nSE[i];
+        newFg.nSE[x + 1 + (y - 1) * xdim] = newFg.nNW[i];
+        newFg.nSW[x - 1 + (y - 1) * xdim] = newFg.nNE[i];
+      }
+    }
+
     const old = this.fluidGrid;
     this.fluidGrid = newFg;
     this.tmp = old;
