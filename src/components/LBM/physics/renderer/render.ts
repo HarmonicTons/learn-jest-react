@@ -6,7 +6,9 @@ export enum PlotTypes {
   ux = "ux",
   uy = "uy",
   speed = "speed",
-  curl = "curl"
+  curl = "curl",
+  mass = "mass",
+  alpha = "alpha"
 }
 
 // Color a grid square in the image data array, one pixel at a time (rgb each in range 0 to 255):
@@ -78,6 +80,14 @@ export function render(
               fluidGrid.uy[x + y * xdim] * fluidGrid.uy[x + y * xdim]
           );
           cIndex = Math.round(nColors * (speed * 4 * contrast));
+        } else if (plotType == PlotTypes.mass) {
+          cIndex = Math.round(
+            nColors * ((fluidGrid.m[x + y * xdim] - 1) * 6 * contrast + 0.5)
+          );
+        } else if (plotType == PlotTypes.alpha) {
+          cIndex = Math.round(
+            nColors * ((fluidGrid.alpha[x + y * xdim] - 1) * 6 * contrast + 0.5)
+          );
         } else {
           cIndex = Math.round(
             nColors * (fluidGrid.curl[x + y * xdim] * 5 * contrast + 0.5)

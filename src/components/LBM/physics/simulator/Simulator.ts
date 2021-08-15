@@ -26,6 +26,8 @@ export interface FluidGrid {
   uy: number[];
   curl: number[];
   flag: Flags[];
+  m: number[];
+  alpha: number[];
 }
 
 export class Simulator {
@@ -64,7 +66,9 @@ export class Simulator {
       ux: new Array(xdim * ydim), // macroscopic velocity
       uy: new Array(xdim * ydim),
       curl: new Array(xdim * ydim),
-      flag: new Array(xdim * ydim)
+      flag: new Array(xdim * ydim),
+      m: new Array(xdim * ydim),
+      alpha: new Array(xdim * ydim)
     };
     this.tmp = {
       xdim,
@@ -82,7 +86,9 @@ export class Simulator {
       ux: new Array(xdim * ydim), // macroscopic velocity
       uy: new Array(xdim * ydim),
       curl: new Array(xdim * ydim),
-      flag: new Array(xdim * ydim)
+      flag: new Array(xdim * ydim),
+      m: new Array(xdim * ydim),
+      alpha: new Array(xdim * ydim)
     };
 
     // Initialize to a steady rightward flow with no barriers:
@@ -112,9 +118,19 @@ export class Simulator {
       this.fluidGrid.flag[x + y * xdim] = Flags.barrier;
     }
 
+    // // box
+    // for (let x = 0; x < xdim; x++) {
+    //   this.fluidGrid.flag[x + 0 * xdim] = Flags.barrier;
+    //   this.fluidGrid.flag[x + (ydim - 1) * xdim] = Flags.barrier;
+    // }
+    // for (let y = 0; y < ydim; y++) {
+    //   this.fluidGrid.flag[0 + y * xdim] = Flags.barrier;
+    //   this.fluidGrid.flag[xdim - 1 + y * xdim] = Flags.barrier;
+    // }
+
     for (let y = 0; y < ydim; y++) {
       for (let x = 0; x < xdim; x++) {
-        this.setEquil(x, y, this.fluidSpeed, 0, 1);
+        this.setEquil(x, y, 0, 0, 1);
         this.fluidGrid.curl[x + y * xdim] = 0.0;
       }
     }
@@ -144,6 +160,7 @@ export class Simulator {
 
     this.collide();
     this.stream();
+    this.computeMass();
     this.computeCurl();
 
     let stable = true;
@@ -178,14 +195,14 @@ export class Simulator {
       this.setEquil(x, 0, 0, 0, 1);
       this.setEquil(x, ydim - 1, 0, 0, 1);
     }
-    for (let y = 1; y < Math.floor(ydim / 2); y++) {
+    for (let y = 0; y < ydim; y++) {
       this.setEquil(0, y, u0, 0, 1);
       this.setEquil(xdim - 1, y, 0, 0, 1);
     }
-    for (let y = Math.floor(ydim / 2); y < ydim - 1; y++) {
-      this.setEquil(0, y, 0, 0, 1);
-      this.setEquil(xdim - 1, y, 0, 0, 1);
-    }
+    // for (let y = Math.floor(ydim / 2); y < ydim - 1; y++) {
+    //   this.setEquil(0, y, 0, 0, 1);
+    //   this.setEquil(xdim - 1, y, 0, 0, 1);
+    // }
   }
 
   collide(): void {
@@ -262,11 +279,24 @@ export class Simulator {
     newFg.uy = fg.uy;
     newFg.curl = fg.curl;
     newFg.flag = fg.flag;
+    newFg.m = fg.m;
+    newFg.alpha = fg.alpha;
 
     // copy previous values
     for (let y = 0; y < ydim; y++) {
       for (let x = 0; x < xdim; x++) {
         const i = x + y * xdim;
+        if (fg.flag[i] === Flags.gas) {
+          newFg.nN[i] = 0;
+          newFg.nNW[i] = 0;
+          newFg.nE[i] = 0;
+          newFg.nNE[i] = 0;
+          newFg.nS[i] = 0;
+          newFg.nSE[i] = 0;
+          newFg.nW[i] = 0;
+          newFg.nSW[i] = 0;
+          continue;
+        }
         newFg.nN[i] = fg.nN[i];
         newFg.nNW[i] = fg.nNW[i];
         newFg.nE[i] = fg.nE[i];
@@ -282,7 +312,7 @@ export class Simulator {
     for (let y = 0; y < ydim; y++) {
       for (let x = 0; x < xdim; x++) {
         const i = x + y * xdim;
-        if (fg.flag[i] !== Flags.fluid) {
+        if (fg.flag[i] !== Flags.fluid && fg.flag[i] !== Flags.interface) {
           continue;
         }
         newFg.nN[x + (y + 1) * xdim] = fg.nN[i];
@@ -318,6 +348,35 @@ export class Simulator {
     this.tmp = old;
   }
 
+  computeMass(): void {
+    const fg = this.fluidGrid;
+    const { xdim, ydim } = fg;
+    for (let y = 1; y < ydim - 1; y++) {
+      for (let x = 1; x < xdim - 1; x++) {
+        const i = x + y * xdim;
+        const deltaM =
+          fg.nE[x + 1 + y * xdim] -
+          fg.nW[i] +
+          fg.nW[x - 1 + y * xdim] -
+          fg.nE[i] +
+          fg.nN[x + (y + 1) * xdim] -
+          fg.nS[i] +
+          fg.nS[x + (y - 1) * xdim] -
+          fg.nN[i] +
+          fg.nNE[x + 1 + (y + 1) * xdim] -
+          fg.nSW[i] +
+          fg.nNW[x - 1 + (y + 1) * xdim] -
+          fg.nSE[i] +
+          fg.nSE[x + 1 + (y - 1) * xdim] -
+          fg.nNW[i] +
+          fg.nSW[x - 1 + (y - 1) * xdim] -
+          fg.nNE[i];
+        fg.m[i] -= deltaM;
+        fg.alpha[i] = fg.m[i] / fg.rho[i];
+      }
+    }
+  }
+
   setEquil(
     x: number,
     y: number,
@@ -346,6 +405,8 @@ export class Simulator {
     fg.nNW[i] = one36th * newrho * (1 - ux3 + uy3 + 4.5 * (u2 - uxuy2) - u215);
     fg.nSW[i] = one36th * newrho * (1 - ux3 - uy3 + 4.5 * (u2 + uxuy2) - u215);
     fg.rho[i] = newrho;
+    fg.m[i] = newrho;
+    fg.alpha[i] = 1;
     fg.ux[i] = newux;
     fg.uy[i] = newuy;
   }
