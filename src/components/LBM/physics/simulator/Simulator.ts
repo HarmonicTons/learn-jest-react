@@ -159,8 +159,9 @@ export class Simulator {
     const { xdim, ydim } = this.fluidGrid;
 
     this.collide();
-    this.stream();
     this.computeMass();
+    this.stream();
+    this.computeAlpha();
     this.computeCurl();
 
     let stable = true;
@@ -224,7 +225,9 @@ export class Simulator {
         fg.rho[i] = rho;
         const ux = (nE + nNE + nSE - nW - nNW - nSW) / rho;
         fg.ux[i] = ux;
-        const uy = (nN + nNE + nNW - nS - nSE - nSW) / rho;
+        // gravity
+        const g = 0.001;
+        const uy = (nN + nNE + nNW - nS - nSE - nSW) / rho - g;
         fg.uy[i] = uy;
         // pre-compute a bunch of stuff for optimization
         const one9thrho = rho / 9;
@@ -255,11 +258,44 @@ export class Simulator {
           (one36thrho * (1 - ux3 - uy3 + 4.5 * (u2 + uxuy2) - u215) - nSW);
       }
     }
-    for (let y = 1; y < ydim - 2; y++) {
-      // at right end, copy left-flowing densities from next row to the left
-      fg.nW[xdim - 1 + y * xdim] = fg.nW[xdim - 2 + y * xdim];
-      fg.nNW[xdim - 1 + y * xdim] = fg.nNW[xdim - 2 + y * xdim];
-      fg.nSW[xdim - 1 + y * xdim] = fg.nSW[xdim - 2 + y * xdim];
+  }
+
+  computeMass(): void {
+    const fg = this.fluidGrid;
+    const { xdim, ydim } = fg;
+    for (let y = 1; y < ydim - 1; y++) {
+      for (let x = 1; x < xdim - 1; x++) {
+        const i = x + y * xdim;
+        if (fg.flag[i] === Flags.gas || fg.flag[i] === Flags.barrier) {
+          continue;
+        }
+        const deltaM =
+          (fg.flag[x + 1 + y * xdim] === Flags.barrier
+            ? 0
+            : fg.nW[x + 1 + y * xdim] - fg.nE[i]) +
+          (fg.flag[x - 1 + y * xdim] === Flags.barrier
+            ? 0
+            : fg.nE[x - 1 + y * xdim] - fg.nW[i]) +
+          (fg.flag[x + (y + 1) * xdim] === Flags.barrier
+            ? 0
+            : fg.nS[x + (y + 1) * xdim] - fg.nN[i]) +
+          (fg.flag[x + (y - 1) * xdim] === Flags.barrier
+            ? 0
+            : fg.nN[x + (y - 1) * xdim] - fg.nS[i]) +
+          (fg.flag[x + 1 + (y + 1) * xdim] === Flags.barrier
+            ? 0
+            : fg.nSW[x + 1 + (y + 1) * xdim] - fg.nNE[i]) +
+          (fg.flag[x - 1 + (y + 1) * xdim] === Flags.barrier
+            ? 0
+            : fg.nSE[x - 1 + (y + 1) * xdim] - fg.nNW[i]) +
+          (fg.flag[x + 1 + (y - 1) * xdim] === Flags.barrier
+            ? 0
+            : fg.nNW[x + 1 + (y - 1) * xdim] - fg.nSE[i]) +
+          (fg.flag[x - 1 + (y - 1) * xdim] === Flags.barrier
+            ? 0
+            : fg.nNE[x - 1 + (y - 1) * xdim] - fg.nSW[i]);
+        fg.m[i] += deltaM;
+      }
     }
   }
 
@@ -349,7 +385,7 @@ export class Simulator {
     this.tmp = old;
   }
 
-  computeMass(): void {
+  computeAlpha(): void {
     const fg = this.fluidGrid;
     const { xdim, ydim } = fg;
     for (let y = 1; y < ydim - 1; y++) {
@@ -358,35 +394,6 @@ export class Simulator {
         if (fg.flag[i] === Flags.gas || fg.flag[i] === Flags.barrier) {
           continue;
         }
-        // f 4.4
-        // we need to use the post-collision value
-        // here we are post-stream, so we "undo" the stream process in the formula
-        const deltaM =
-          (fg.flag[x + 1 + y * xdim] === Flags.barrier
-            ? 0
-            : fg.nW[i] - fg.nE[x + 1 + y * xdim]) +
-          (fg.flag[x - 1 + y * xdim] === Flags.barrier
-            ? 0
-            : fg.nE[i] - fg.nW[x - 1 + y * xdim]) +
-          (fg.flag[x + (y + 1) * xdim] === Flags.barrier
-            ? 0
-            : fg.nS[i] - fg.nN[x + (y + 1) * xdim]) +
-          (fg.flag[x + (y - 1) * xdim] === Flags.barrier
-            ? 0
-            : fg.nN[i] - fg.nS[x + (y - 1) * xdim]) +
-          (fg.flag[x + 1 + (y + 1) * xdim] === Flags.barrier
-            ? 0
-            : fg.nSW[i] - fg.nNE[x + 1 + (y + 1) * xdim]) +
-          (fg.flag[x - 1 + (y + 1) * xdim] === Flags.barrier
-            ? 0
-            : fg.nSE[i] - fg.nNW[x - 1 + (y + 1) * xdim]) +
-          (fg.flag[x + 1 + (y - 1) * xdim] === Flags.barrier
-            ? 0
-            : fg.nNW[i] - fg.nSE[x + 1 + (y - 1) * xdim]) +
-          (fg.flag[x - 1 + (y - 1) * xdim] === Flags.barrier
-            ? 0
-            : fg.nNE[i] - fg.nSW[x - 1 + (y - 1) * xdim]);
-        fg.m[i] += deltaM;
         const rho =
           fg.n0[i] +
           fg.nN[i] +
