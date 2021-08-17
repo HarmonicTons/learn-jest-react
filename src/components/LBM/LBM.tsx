@@ -11,8 +11,8 @@ export const LBM = (): JSX.Element => {
       return;
     }
 
-    const xdim = 200;
-    const ydim = 80;
+    const xdim = 80;
+    const ydim = 32;
 
     const simulator = new Simulator(xdim, ydim);
     const renderer = new Renderer(canvas, simulator);

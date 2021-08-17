@@ -45,7 +45,7 @@ export class Simulator {
     ydim: number,
     fluidSpeed = 0.1,
     viscosity = 0.02,
-    maxUps = 1000
+    maxUps = 1
   ) {
     this.fluidSpeed = fluidSpeed;
     this.viscosity = viscosity;
@@ -159,6 +159,7 @@ export class Simulator {
     this.computeMass();
     this.stream();
     this.computeAlpha();
+    this.moveInterface();
     this.computeCurl();
 
     let stable = true;
@@ -322,17 +323,6 @@ export class Simulator {
     for (let y = 0; y < ydim; y++) {
       for (let x = 0; x < xdim; x++) {
         const i = x + y * xdim;
-        if (fg.flag[i] === Flags.gas) {
-          newFg.nN[i] = 0;
-          newFg.nNW[i] = 0;
-          newFg.nE[i] = 0;
-          newFg.nNE[i] = 0;
-          newFg.nS[i] = 0;
-          newFg.nSE[i] = 0;
-          newFg.nW[i] = 0;
-          newFg.nSW[i] = 0;
-          continue;
-        }
         newFg.nN[i] = fg.nN[i];
         newFg.nNW[i] = fg.nNW[i];
         newFg.nE[i] = fg.nE[i];
@@ -396,7 +386,7 @@ export class Simulator {
         return fg[oppositeDir][x + y * xdim];
       }
       if (fg.flag[x1 + y1 * xdim] === Flags.gas) {
-        return 0;
+        return fg[oppositeDir][x + y * xdim] / 2;
       }
       return fg[dir][x1 + y1 * xdim];
     };
@@ -444,6 +434,86 @@ export class Simulator {
           fg.nSW[i] +
           fg.nSE[i];
         fg.alpha[i] = fg.m[i] / rho;
+      }
+    }
+  }
+
+  moveInterface(): void {
+    const fg = this.fluidGrid;
+    const { xdim, ydim } = fg;
+    for (let y = 1; y < ydim - 1; y++) {
+      for (let x = 1; x < xdim - 1; x++) {
+        const i = x + y * xdim;
+        // if (fg.flag[i] !== Flags.interface) {
+        //   continue;
+        // }
+        if (fg.alpha[i] > 1) {
+          fg.m[i] = fg.rho[i];
+          // become fluid
+          fg.flag[i] = Flags.fluid;
+          if (fg.flag[x + (y - 1) * xdim] === Flags.gas) {
+            fg.flag[x + (y - 1) * xdim] = Flags.interface;
+            this.setEquil(x, y - 1, fg.ux[i], fg.uy[i], fg.rho[i], 0);
+          }
+          if (fg.flag[x + (y + 1) * xdim] === Flags.gas) {
+            fg.flag[x + (y + 1) * xdim] = Flags.interface;
+            this.setEquil(x, y + 1, fg.ux[i], fg.uy[i], fg.rho[i], 0);
+          }
+          if (fg.flag[x - 1 + (y - 1) * xdim] === Flags.gas) {
+            fg.flag[x - 1 + (y - 1) * xdim] = Flags.interface;
+            this.setEquil(x - 1, y - 1, fg.ux[i], fg.uy[i], fg.rho[i], 0);
+          }
+          if (fg.flag[x + 1 + (y + 1) * xdim] === Flags.gas) {
+            fg.flag[x + 1 + (y + 1) * xdim] = Flags.interface;
+            this.setEquil(x + 1, y + 1, fg.ux[i], fg.uy[i], fg.rho[i], 0);
+          }
+          if (fg.flag[x - 1 + (y + 1) * xdim] === Flags.gas) {
+            fg.flag[x - 1 + (y + 1) * xdim] = Flags.interface;
+            this.setEquil(x - 1, y + 1, fg.ux[i], fg.uy[i], fg.rho[i], 0);
+          }
+          if (fg.flag[x + 1 + (y - 1) * xdim] === Flags.gas) {
+            fg.flag[x + 1 + (y - 1) * xdim] = Flags.interface;
+            this.setEquil(x + 1, y - 1, fg.ux[i], fg.uy[i], fg.rho[i], 0);
+          }
+          if (fg.flag[x - 1 + y * xdim] === Flags.gas) {
+            fg.flag[x - 1 + y * xdim] = Flags.interface;
+            this.setEquil(x - 1, y, fg.ux[i], fg.uy[i], fg.rho[i], 0);
+          }
+          if (fg.flag[x + 1 + y * xdim] === Flags.gas) {
+            fg.flag[x + 1 + y * xdim] = Flags.interface;
+            this.setEquil(x + 1, y, fg.ux[i], fg.uy[i], fg.rho[i], 0);
+          }
+          return;
+        }
+        if (fg.alpha[i] < 0) {
+          // become gas
+          fg.flag[i] = Flags.gas;
+          if (fg.flag[x + (y - 1) * xdim] === Flags.fluid) {
+            fg.flag[x + (y - 1) * xdim] = Flags.interface;
+          }
+          if (fg.flag[x + (y + 1) * xdim] === Flags.fluid) {
+            fg.flag[x + (y + 1) * xdim] = Flags.interface;
+          }
+          if (fg.flag[x - 1 + (y - 1) * xdim] === Flags.fluid) {
+            fg.flag[x - 1 + (y - 1) * xdim] = Flags.interface;
+          }
+          if (fg.flag[x + 1 + (y + 1) * xdim] === Flags.fluid) {
+            fg.flag[x + 1 + (y + 1) * xdim] = Flags.interface;
+          }
+          if (fg.flag[x - 1 + (y + 1) * xdim] === Flags.fluid) {
+            fg.flag[x - 1 + (y + 1) * xdim] = Flags.interface;
+          }
+          if (fg.flag[x + 1 + (y - 1) * xdim] === Flags.fluid) {
+            fg.flag[x + 1 + (y - 1) * xdim] = Flags.interface;
+          }
+          if (fg.flag[x - 1 + y * xdim] === Flags.fluid) {
+            fg.flag[x - 1 + y * xdim] = Flags.interface;
+          }
+          if (fg.flag[x + 1 + y * xdim] === Flags.fluid) {
+            fg.flag[x + 1 + y * xdim] = Flags.interface;
+          }
+          return;
+        }
       }
     }
   }
