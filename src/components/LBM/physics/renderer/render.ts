@@ -59,8 +59,8 @@ export function render(
         cIndex = nColors + 1;
       } else if (flag === Flags.gas) {
         cIndex = nColors + 3;
-      } else if (flag === Flags.interface) {
-        cIndex = nColors + 2;
+        // } else if (flag === Flags.interface) {
+        //   cIndex = nColors + 2;
       } else {
         if (plotType == PlotTypes.rho) {
           cIndex = Math.round(
