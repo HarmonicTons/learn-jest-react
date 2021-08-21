@@ -1,3 +1,7 @@
+const noGas = false;
+const ups = 1;
+const g = 0; // 0.001
+
 const four9ths = 4.0 / 9.0; // abbreviations
 const one9th = 1.0 / 9.0;
 const one36th = 1.0 / 36.0;
@@ -95,7 +99,7 @@ export class Simulator {
     ydim: number,
     fluidSpeed = 0.1,
     viscosity = 0.02,
-    maxUps = 1000
+    maxUps = ups
   ) {
     this.fluidSpeed = fluidSpeed;
     this.viscosity = viscosity;
@@ -145,24 +149,26 @@ export class Simulator {
     for (let y = 0; y < ydim; y++) {
       for (let x = 0; x < xdim; x++) {
         this.fluidGrid.flag[x + y * xdim] = Flags.fluid;
-        this.setEquil(x, y, 0, 0, 1);
+        this.setEquil(x, y, this.fluidSpeed, 0, 1);
         this.fluidGrid.curl[x + y * xdim] = 0.0;
       }
     }
 
-    // gas
-    for (let y = 0; y < ydim; y++) {
-      for (let x = Math.floor(xdim / 2); x < xdim - 1; x++) {
-        this.fluidGrid.flag[x + y * xdim] = Flags.gas;
+    if (noGas === false) {
+      // gas
+      for (let y = 0; y < ydim; y++) {
+        for (let x = Math.floor(xdim / 2); x < xdim - 1; x++) {
+          this.fluidGrid.flag[x + y * xdim] = Flags.gas;
+        }
       }
-    }
 
-    // interface
-    for (let y = 0; y < xdim; y++) {
-      const x = Math.floor(xdim / 2);
-      this.fluidGrid.flag[x + y * xdim] = Flags.interface;
-      this.setEquil(x, y, 0, 0, 1, 0);
-      this.fluidGrid.curl[x + y * xdim] = 0.0;
+      // interface
+      for (let y = 0; y < xdim; y++) {
+        const x = Math.floor(xdim / 2);
+        this.fluidGrid.flag[x + y * xdim] = Flags.interface;
+        this.setEquil(x, y, 0, 0, 1, 0);
+        this.fluidGrid.curl[x + y * xdim] = 0.0;
+      }
     }
 
     // // Create a simple linear "wall" barrier (intentionally a little offset from center):
@@ -275,7 +281,6 @@ export class Simulator {
         const ux = (nE + nNE + nSE - nW - nNW - nSW) / rho;
         fg.ux[i] = ux;
         // gravity
-        const g = 0.001;
         const uy = (nN + nNE + nNW - nS - nSE - nSW) / rho - g;
         fg.uy[i] = uy;
         // pre-compute a bunch of stuff for optimization
@@ -312,6 +317,7 @@ export class Simulator {
   computeMass(): void {
     const fg = this.fluidGrid;
     const { xdim, ydim } = fg;
+    let totalMass = 0;
     for (let y = 1; y < ydim - 1; y++) {
       for (let x = 1; x < xdim - 1; x++) {
         const i = x + y * xdim;
@@ -346,8 +352,10 @@ export class Simulator {
           deltaMassInDir("nSE") +
           deltaMassInDir("nSW");
         fg.m[i] += deltaM;
+        totalMass += fg.m[i];
       }
     }
+    console.log(Math.round(totalMass));
   }
 
   stream(): void {
@@ -446,7 +454,10 @@ export class Simulator {
         if (fg.flag[i] !== Flags.interface) {
           continue;
         }
+        console.log(fg.alpha[i]);
         if (fg.alpha[i] > 1) {
+          console.log(fg.alpha[i], "lost", fg.m[i] - fg.rho[i]);
+          // TODO we lose too much mass doing that
           fg.m[i] = fg.rho[i];
           // become fluid
           fg.flag[i] = Flags.fluid;
@@ -485,6 +496,7 @@ export class Simulator {
           return;
         }
         if (fg.alpha[i] < 0) {
+          console.log(fg.alpha[i], "gained", fg.m[i] - fg.rho[i]);
           // become gas
           fg.flag[i] = Flags.gas;
           if (fg.flag[x + (y - 1) * xdim] === Flags.fluid) {
