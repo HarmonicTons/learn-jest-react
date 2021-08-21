@@ -2,6 +2,56 @@ const four9ths = 4.0 / 9.0; // abbreviations
 const one9th = 1.0 / 9.0;
 const one36th = 1.0 / 36.0;
 
+type Dir = "nS" | "nN" | "nW" | "nE" | "nSW" | "nNE" | "nSE" | "nNW";
+
+const moveInDirection = (dir: Dir) => {
+  let x1, y1: number;
+  let oppositeDir: Dir;
+  switch (dir) {
+    case "nN":
+      x1 = 0;
+      y1 = 1;
+      oppositeDir = "nS";
+      break;
+    case "nS":
+      x1 = 0;
+      y1 = -1;
+      oppositeDir = "nN";
+      break;
+    case "nE":
+      x1 = 1;
+      y1 = 0;
+      oppositeDir = "nW";
+      break;
+    case "nW":
+      x1 = -1;
+      y1 = 0;
+      oppositeDir = "nE";
+      break;
+    case "nNE":
+      x1 = 1;
+      y1 = 1;
+      oppositeDir = "nSW";
+      break;
+    case "nSW":
+      x1 = -1;
+      y1 = -1;
+      oppositeDir = "nNE";
+      break;
+    case "nNW":
+      x1 = -1;
+      y1 = 1;
+      oppositeDir = "nSE";
+      break;
+    case "nSE":
+      x1 = 1;
+      y1 = -1;
+      oppositeDir = "nNW";
+      break;
+  }
+  return { x: x1, y: y1, oppositeDir };
+};
+
 export enum Flags {
   barrier = "barrier",
   fluid = "fluid",
@@ -45,7 +95,7 @@ export class Simulator {
     ydim: number,
     fluidSpeed = 0.1,
     viscosity = 0.02,
-    maxUps = 1
+    maxUps = 1000
   ) {
     this.fluidSpeed = fluidSpeed;
     this.viscosity = viscosity;
@@ -93,7 +143,7 @@ export class Simulator {
 
     // Initialize to a steady rightward flow with no barriers:
     for (let y = 0; y < ydim; y++) {
-      for (let x = 0; x < Math.floor(xdim / 2); x++) {
+      for (let x = 0; x < xdim; x++) {
         this.fluidGrid.flag[x + y * xdim] = Flags.fluid;
         this.setEquil(x, y, 0, 0, 1);
         this.fluidGrid.curl[x + y * xdim] = 0.0;
@@ -268,39 +318,33 @@ export class Simulator {
         if (fg.flag[i] === Flags.gas || fg.flag[i] === Flags.barrier) {
           continue;
         }
+
+        const deltaMassInDir = (dir: Dir): number => {
+          const { x: x1, y: y1, oppositeDir } = moveInDirection(dir);
+          const i = x + x1 + (y + y1) * xdim;
+          const flag = fg.flag[i];
+          if (flag === Flags.barrier || flag === Flags.gas) {
+            return 0;
+          }
+          const dm = fg[oppositeDir][i] - fg[dir][x + y * xdim];
+          // fluid/fluid or fluid/interface
+          if (flag === Flags.fluid || fg.flag[x + y * xdim] === Flags.fluid) {
+            return dm;
+          }
+          // interface/interface
+          const ci = (1 / 2) * (fg.alpha[x + y * xdim] + fg.alpha[i]);
+          return ci * dm;
+        };
+
         const deltaM =
-          (fg.flag[x + 1 + y * xdim] === Flags.barrier ||
-          fg.flag[x + 1 + y * xdim] === Flags.gas
-            ? 0
-            : fg.nW[x + 1 + y * xdim] - fg.nE[i]) +
-          (fg.flag[x - 1 + y * xdim] === Flags.barrier ||
-          fg.flag[x - 1 + y * xdim] === Flags.gas
-            ? 0
-            : fg.nE[x - 1 + y * xdim] - fg.nW[i]) +
-          (fg.flag[x + (y + 1) * xdim] === Flags.barrier ||
-          fg.flag[x + (y + 1) * xdim] === Flags.gas
-            ? 0
-            : fg.nS[x + (y + 1) * xdim] - fg.nN[i]) +
-          (fg.flag[x + (y - 1) * xdim] === Flags.barrier ||
-          fg.flag[x + (y - 1) * xdim] === Flags.gas
-            ? 0
-            : fg.nN[x + (y - 1) * xdim] - fg.nS[i]) +
-          (fg.flag[x + 1 + (y + 1) * xdim] === Flags.barrier ||
-          fg.flag[x + 1 + (y + 1) * xdim] === Flags.gas
-            ? 0
-            : fg.nSW[x + 1 + (y + 1) * xdim] - fg.nNE[i]) +
-          (fg.flag[x - 1 + (y + 1) * xdim] === Flags.barrier ||
-          fg.flag[x - 1 + (y + 1) * xdim] === Flags.gas
-            ? 0
-            : fg.nSE[x - 1 + (y + 1) * xdim] - fg.nNW[i]) +
-          (fg.flag[x + 1 + (y - 1) * xdim] === Flags.barrier ||
-          fg.flag[x + 1 + (y - 1) * xdim] === Flags.gas
-            ? 0
-            : fg.nNW[x + 1 + (y - 1) * xdim] - fg.nSE[i]) +
-          (fg.flag[x - 1 + (y - 1) * xdim] === Flags.barrier ||
-          fg.flag[x - 1 + (y - 1) * xdim] === Flags.gas
-            ? 0
-            : fg.nNE[x - 1 + (y - 1) * xdim] - fg.nSW[i]);
+          deltaMassInDir("nE") +
+          deltaMassInDir("nW") +
+          deltaMassInDir("nN") +
+          deltaMassInDir("nS") +
+          deltaMassInDir("nNE") +
+          deltaMassInDir("nNW") +
+          deltaMassInDir("nSE") +
+          deltaMassInDir("nSW");
         fg.m[i] += deltaM;
       }
     }
@@ -334,61 +378,16 @@ export class Simulator {
       }
     }
 
-    type Dir = "nS" | "nN" | "nW" | "nE" | "nSW" | "nNE" | "nSE" | "nNW";
-
     const streamFrom = (fg: FluidGrid, x: number, y: number, dir: Dir) => {
-      let x1, y1: number;
-      let oppositeDir: Dir;
-      switch (dir) {
-        case "nN":
-          x1 = x;
-          y1 = y - 1;
-          oppositeDir = "nS";
-          break;
-        case "nS":
-          x1 = x;
-          y1 = y + 1;
-          oppositeDir = "nN";
-          break;
-        case "nE":
-          x1 = x - 1;
-          y1 = y;
-          oppositeDir = "nW";
-          break;
-        case "nW":
-          x1 = x + 1;
-          y1 = y;
-          oppositeDir = "nE";
-          break;
-        case "nNE":
-          x1 = x - 1;
-          y1 = y - 1;
-          oppositeDir = "nSW";
-          break;
-        case "nSW":
-          x1 = x + 1;
-          y1 = y + 1;
-          oppositeDir = "nNE";
-          break;
-        case "nNW":
-          x1 = x + 1;
-          y1 = y - 1;
-          oppositeDir = "nSE";
-          break;
-        case "nSE":
-          x1 = x - 1;
-          y1 = y + 1;
-          oppositeDir = "nNW";
-          break;
-      }
-
-      if (fg.flag[x1 + y1 * xdim] === Flags.barrier) {
+      const { x: x1, y: y1, oppositeDir } = moveInDirection(dir);
+      const i = x - x1 + (y - y1) * xdim;
+      if (fg.flag[i] === Flags.barrier) {
         return fg[oppositeDir][x + y * xdim];
       }
-      if (fg.flag[x1 + y1 * xdim] === Flags.gas) {
+      if (fg.flag[i] === Flags.gas) {
         return fg[oppositeDir][x + y * xdim] / 2;
       }
-      return fg[dir][x1 + y1 * xdim];
+      return fg[dir][i];
     };
 
     // stream from fluid
@@ -444,9 +443,9 @@ export class Simulator {
     for (let y = 1; y < ydim - 1; y++) {
       for (let x = 1; x < xdim - 1; x++) {
         const i = x + y * xdim;
-        // if (fg.flag[i] !== Flags.interface) {
-        //   continue;
-        // }
+        if (fg.flag[i] !== Flags.interface) {
+          continue;
+        }
         if (fg.alpha[i] > 1) {
           fg.m[i] = fg.rho[i];
           // become fluid
