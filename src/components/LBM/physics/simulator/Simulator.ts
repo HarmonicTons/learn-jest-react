@@ -272,9 +272,9 @@ export class Simulator {
         return fg[oppositeDir][x + y * xdim];
       }
       if (fg.flag[i] === Flags.gas) {
-        // this is a poor approximation of f4.11
-        const feq = ["nN", "nE", "nW", "nS"].includes(dir) ? 1 / 9 : 1 / 36;
-        return feq; // 2 * feq - fg[oppositeDir][x + y * xdim];
+        // TODO this is wrong
+        const feq = equil(1, 0, 0);
+        return feq[oppositeDir];
       }
       return fg[dir][i];
     };
