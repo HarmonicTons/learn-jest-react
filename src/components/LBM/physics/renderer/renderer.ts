@@ -52,7 +52,7 @@ export class Renderer {
     render(
       this.colorMap,
       this.contrast,
-      PlotTypes.curl,
+      PlotTypes.speed,
       this.simulator,
       this.simulator.fluidGrid,
       this.context,

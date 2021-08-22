@@ -20,11 +20,11 @@ export class Simulator {
   constructor({
     xdim,
     ydim,
-    fluidSpeed = 0.1,
+    fluidSpeed = 0,
     viscosity = 0.02,
     maxUps = 1000,
-    gravity = 0,
-    setInitialFluidGrid = simpleBarrier
+    gravity = 0.001,
+    setInitialFluidGrid = damBreak
   }: {
     xdim: number;
     ydim: number;
@@ -179,14 +179,15 @@ export class Simulator {
         const nNE = fg.nNE[i];
         const nSW = fg.nSW[i];
         const nSE = fg.nSE[i];
+        const alpha = fg.alpha[i];
         const rho = n0 + nN + nS + nE + nW + nNW + nNE + nSW + nSE;
         fg.rho[i] = rho;
         const ux = (nE + nNE + nSE - nW - nNW - nSW) / rho;
         fg.ux[i] = ux;
-        const uy = (nN + nNE + nNW - nS - nSE - nSW) / rho - this.gravity;
+        const uy = (nN + nNE + nNW - nS - nSE - nSW) / rho;
         fg.uy[i] = uy;
         // pre-compute a bunch of stuff for optimization
-        const distributions = equil(rho, ux, uy);
+        const distributions = equil(rho, ux, uy, alpha, this.gravity);
         fg.n0[i] += omega * (distributions.n0 - n0);
         fg.nE[i] += omega * (distributions.nE - nE);
         fg.nW[i] += omega * (distributions.nW - nW);
@@ -427,7 +428,7 @@ export class Simulator {
     const { xdim } = fg;
     const i = x + y * xdim;
     const newrho = optionalNewRho ?? fg.rho[i];
-    const distributions = equil(newrho, newux, newuy);
+    const distributions = equil(newrho, newux, newuy, alpha, this.gravity);
     fg.n0[i] = distributions.n0;
     fg.nE[i] = distributions.nE;
     fg.nW[i] = distributions.nW;
