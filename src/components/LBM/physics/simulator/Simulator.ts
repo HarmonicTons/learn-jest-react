@@ -1,6 +1,6 @@
 import { restingWater } from "./initialConditions/restingWater";
 import { simpleBarrier } from "./initialConditions/simpleBarrier";
-import { wall } from "./initialConditions/wall";
+import { damBreak } from "./initialConditions/damBreak";
 import { moveInDirection } from "./moveInDirection";
 import { Dir, Flags, FluidGrid, SetEquil } from "./types";
 
@@ -25,9 +25,9 @@ export class Simulator {
     ydim,
     fluidSpeed = 0,
     viscosity = 0.02,
-    maxUps = 0,
-    gravity = 0,
-    setInitialFluidGrid = restingWater
+    maxUps = 1000,
+    gravity = 0.001,
+    setInitialFluidGrid = damBreak
   }: {
     xdim: number;
     ydim: number;
@@ -298,12 +298,13 @@ export class Simulator {
         return fg[oppositeDir][x + y * xdim];
       }
       if (fg.flag[i] === Flags.gas) {
-        return fg[oppositeDir][x + y * xdim] / 2;
+        // TODO this is experimental
+        return ["nN", "nE", "nW", "nS"].includes(dir) ? 1 / 9 : 1 / 36;
       }
       return fg[dir][i];
     };
 
-    // stream from fluid
+    // for every fluid or interface cell
     for (let y = 1; y < ydim - 1; y++) {
       for (let x = 1; x < xdim - 1; x++) {
         const i = x + y * xdim;
