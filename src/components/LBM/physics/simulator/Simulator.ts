@@ -3,10 +3,7 @@ import { simpleBarrier } from "./initialConditions/simpleBarrier";
 import { damBreak } from "./initialConditions/damBreak";
 import { moveInDirection } from "./moveInDirection";
 import { Dir, Flags, FluidGrid, SetEquil } from "./types";
-
-const four9ths = 4.0 / 9.0; // abbreviations
-const one9th = 1.0 / 9.0;
-const one36th = 1.0 / 36.0;
+import { equil } from "./equil";
 
 export class Simulator {
   public isRunning = false;
@@ -23,11 +20,11 @@ export class Simulator {
   constructor({
     xdim,
     ydim,
-    fluidSpeed = 0,
+    fluidSpeed = 0.1,
     viscosity = 0.02,
     maxUps = 1000,
-    gravity = 0.001,
-    setInitialFluidGrid = damBreak
+    gravity = 0,
+    setInitialFluidGrid = simpleBarrier
   }: {
     xdim: number;
     ydim: number;
@@ -189,32 +186,16 @@ export class Simulator {
         const uy = (nN + nNE + nNW - nS - nSE - nSW) / rho - this.gravity;
         fg.uy[i] = uy;
         // pre-compute a bunch of stuff for optimization
-        const one9thrho = rho / 9;
-        const one36thrho = rho / 36;
-        const ux3 = 3 * ux;
-        const uy3 = 3 * uy;
-        const ux2 = ux * ux;
-        const uy2 = uy * uy;
-        const uxuy2 = 2 * ux * uy;
-        const u2 = ux2 + uy2;
-        const u215 = 1.5 * u2;
-        fg.n0[i] += omega * (four9ths * rho * (1 - u215) - n0);
-        fg.nE[i] += omega * (one9thrho * (1 + ux3 + 4.5 * ux2 - u215) - nE);
-        fg.nW[i] += omega * (one9thrho * (1 - ux3 + 4.5 * ux2 - u215) - nW);
-        fg.nN[i] += omega * (one9thrho * (1 + uy3 + 4.5 * uy2 - u215) - nN);
-        fg.nS[i] += omega * (one9thrho * (1 - uy3 + 4.5 * uy2 - u215) - nS);
-        fg.nNE[i] +=
-          omega *
-          (one36thrho * (1 + ux3 + uy3 + 4.5 * (u2 + uxuy2) - u215) - nNE);
-        fg.nSE[i] +=
-          omega *
-          (one36thrho * (1 + ux3 - uy3 + 4.5 * (u2 - uxuy2) - u215) - nSE);
-        fg.nNW[i] +=
-          omega *
-          (one36thrho * (1 - ux3 + uy3 + 4.5 * (u2 - uxuy2) - u215) - nNW);
-        fg.nSW[i] +=
-          omega *
-          (one36thrho * (1 - ux3 - uy3 + 4.5 * (u2 + uxuy2) - u215) - nSW);
+        const distributions = equil(rho, ux, uy);
+        fg.n0[i] += omega * (distributions.n0 - n0);
+        fg.nE[i] += omega * (distributions.nE - nE);
+        fg.nW[i] += omega * (distributions.nW - nW);
+        fg.nN[i] += omega * (distributions.nN - nN);
+        fg.nS[i] += omega * (distributions.nS - nS);
+        fg.nNE[i] += omega * (distributions.nNE - nNE);
+        fg.nSE[i] += omega * (distributions.nSE - nSE);
+        fg.nNW[i] += omega * (distributions.nNW - nNW);
+        fg.nSW[i] += omega * (distributions.nSW - nSW);
       }
     }
   }
@@ -298,8 +279,9 @@ export class Simulator {
         return fg[oppositeDir][x + y * xdim];
       }
       if (fg.flag[i] === Flags.gas) {
-        // TODO this is experimental
-        return ["nN", "nE", "nW", "nS"].includes(dir) ? 1 / 9 : 1 / 36;
+        // this is a poor approximation of f4.11
+        const feq = ["nN", "nE", "nW", "nS"].includes(dir) ? 1 / 9 : 1 / 36;
+        return feq; // 2 * feq - fg[oppositeDir][x + y * xdim];
       }
       return fg[dir][i];
     };
@@ -445,22 +427,16 @@ export class Simulator {
     const { xdim } = fg;
     const i = x + y * xdim;
     const newrho = optionalNewRho ?? fg.rho[i];
-    const ux3 = 3 * newux;
-    const uy3 = 3 * newuy;
-    const ux2 = newux * newux;
-    const uy2 = newuy * newuy;
-    const uxuy2 = 2 * newux * newuy;
-    const u2 = ux2 + uy2;
-    const u215 = 1.5 * u2;
-    fg.n0[i] = four9ths * newrho * (1 - u215);
-    fg.nE[i] = one9th * newrho * (1 + ux3 + 4.5 * ux2 - u215);
-    fg.nW[i] = one9th * newrho * (1 - ux3 + 4.5 * ux2 - u215);
-    fg.nN[i] = one9th * newrho * (1 + uy3 + 4.5 * uy2 - u215);
-    fg.nS[i] = one9th * newrho * (1 - uy3 + 4.5 * uy2 - u215);
-    fg.nNE[i] = one36th * newrho * (1 + ux3 + uy3 + 4.5 * (u2 + uxuy2) - u215);
-    fg.nSE[i] = one36th * newrho * (1 + ux3 - uy3 + 4.5 * (u2 - uxuy2) - u215);
-    fg.nNW[i] = one36th * newrho * (1 - ux3 + uy3 + 4.5 * (u2 - uxuy2) - u215);
-    fg.nSW[i] = one36th * newrho * (1 - ux3 - uy3 + 4.5 * (u2 + uxuy2) - u215);
+    const distributions = equil(newrho, newux, newuy);
+    fg.n0[i] = distributions.n0;
+    fg.nE[i] = distributions.nE;
+    fg.nW[i] = distributions.nW;
+    fg.nN[i] = distributions.nN;
+    fg.nS[i] = distributions.nS;
+    fg.nNE[i] = distributions.nNE;
+    fg.nSE[i] = distributions.nSE;
+    fg.nNW[i] = distributions.nNW;
+    fg.nSW[i] = distributions.nSW;
     fg.rho[i] = newrho;
     fg.alpha[i] = alpha;
     fg.m[i] = newrho * alpha;
