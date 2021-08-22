@@ -4,41 +4,43 @@ import { damBreak } from "./initialConditions/damBreak";
 import { moveInDirection } from "./moveInDirection";
 import { Dir, Flags, FluidGrid, SetEquil } from "./types";
 import { equil } from "./equil";
+import { flowingWater, lowerSource } from "./initialConditions/flowingWater";
 
 export class Simulator {
   public isRunning = false;
   public fluidGrid: FluidGrid;
   public tmp: FluidGrid;
-  private fluidSpeed: number;
   private viscosity: number;
   private lastTimeSteps: number[] = [];
   private lastUpdateTimestamp = 0;
   private maxUps: number;
   private gravity: number;
   public totalMass: number;
+  private setSourcesAndHoles: () => void;
 
   constructor({
     xdim,
     ydim,
-    fluidSpeed = 0,
     viscosity = 0.02,
     maxUps = 1000,
     gravity = 0.001,
-    setInitialFluidGrid = damBreak
+    setInitialFluidGrid = flowingWater,
+    setSourcesAndHoles = lowerSource //() => undefined
   }: {
     xdim: number;
     ydim: number;
-    fluidSpeed?: number;
     viscosity?: number;
     maxUps?: number;
     gravity?: number;
     setInitialFluidGrid?: (fluidGrid: FluidGrid, setEquil: SetEquil) => void;
+    setSourcesAndHoles?: (fluidGrid: FluidGrid, setEquil: SetEquil) => void;
   }) {
-    this.fluidSpeed = fluidSpeed;
     this.viscosity = viscosity;
     this.maxUps = maxUps;
     this.gravity = gravity;
     this.totalMass = 0;
+    this.setSourcesAndHoles = () =>
+      setSourcesAndHoles(this.fluidGrid, this.setEquil.bind(this));
     this.fluidGrid = {
       xdim,
       ydim,
@@ -105,7 +107,7 @@ export class Simulator {
   }
 
   step(): void {
-    this.setBoundaries();
+    this.setSourcesAndHoles();
     this.collide();
     this.computeMass();
     this.stream();
@@ -141,20 +143,6 @@ export class Simulator {
       } else {
         setTimeout(() => this.simulateLoop(), 1000 / this.maxUps);
       }
-    }
-  }
-
-  setBoundaries(): void {
-    const u0 = this.fluidSpeed;
-    if (u0 === 0) {
-      return;
-    }
-    const { xdim, ydim } = this.fluidGrid;
-    for (let y = 10; y < ydim - 10; y++) {
-      this.setEquil(xdim - 2, y, u0, 0, 1);
-    }
-    for (let y = 10; y < ydim - 10; y++) {
-      this.setEquil(1, y, u0, 0, 1);
     }
   }
 
