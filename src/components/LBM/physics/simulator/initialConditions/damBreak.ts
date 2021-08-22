@@ -34,10 +34,10 @@ export const damBreak = (fluidGrid: FluidGrid, setEquil: SetEquil): void => {
   }
 
   // barrier
-  // for (let y = 0; y <= Math.floor(ydim / 3); y++) {
-  //   const x = Math.floor(xdim / 3);
-  //   fluidGrid.flag[x + y * xdim] = Flags.barrier;
-  // }
+  for (let y = 0; y <= Math.floor(ydim / 3) - 10; y++) {
+    const x = Math.floor(xdim / 3);
+    fluidGrid.flag[x + y * xdim] = Flags.barrier;
+  }
 
   // box
   for (let x = 0; x < xdim; x++) {

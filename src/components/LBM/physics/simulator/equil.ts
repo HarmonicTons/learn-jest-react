@@ -10,19 +10,12 @@ export type Distributions = {
   nSW: number;
 };
 
-export const equil = (
-  rho: number,
-  ux: number,
-  uy: number,
-  alpha: number,
-  gravity: number
-): Distributions => {
-  const uyg = uy - (alpha * gravity) / rho;
+export const equil = (rho: number, ux: number, uy: number): Distributions => {
   const ux3 = 3 * ux;
-  const uy3 = 3 * uyg;
+  const uy3 = 3 * uy;
   const ux2 = ux * ux;
-  const uy2 = uyg * uyg;
-  const uxuy2 = 2 * ux * uyg;
+  const uy2 = uy * uy;
+  const uxuy2 = 2 * ux * uy;
   const u2 = ux2 + uy2;
   const u215 = 1.5 * u2;
   return {

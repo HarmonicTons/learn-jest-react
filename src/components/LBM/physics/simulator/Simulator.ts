@@ -23,9 +23,9 @@ export class Simulator {
     ydim,
     viscosity = 0.02,
     maxUps = 1000,
-    gravity = 0.001,
-    setInitialFluidGrid = flowingWater,
-    setSourcesAndHoles = lowerSource //() => undefined
+    gravity = 0.01,
+    setInitialFluidGrid = damBreak,
+    setSourcesAndHoles = () => undefined
   }: {
     xdim: number;
     ydim: number;
@@ -167,7 +167,7 @@ export class Simulator {
         const nNE = fg.nNE[i];
         const nSW = fg.nSW[i];
         const nSE = fg.nSE[i];
-        const alpha = fg.alpha[i];
+        const mass = fg.m[i];
         const rho = n0 + nN + nS + nE + nW + nNW + nNE + nSW + nSE;
         fg.rho[i] = rho;
         const ux = (nE + nNE + nSE - nW - nNW - nSW) / rho;
@@ -175,16 +175,20 @@ export class Simulator {
         const uy = (nN + nNE + nNW - nS - nSE - nSW) / rho;
         fg.uy[i] = uy;
         // pre-compute a bunch of stuff for optimization
-        const distributions = equil(rho, ux, uy, alpha, this.gravity);
+        const distributions = equil(rho, ux, uy);
         fg.n0[i] += omega * (distributions.n0 - n0);
         fg.nE[i] += omega * (distributions.nE - nE);
         fg.nW[i] += omega * (distributions.nW - nW);
-        fg.nN[i] += omega * (distributions.nN - nN);
-        fg.nS[i] += omega * (distributions.nS - nS);
-        fg.nNE[i] += omega * (distributions.nNE - nNE);
-        fg.nSE[i] += omega * (distributions.nSE - nSE);
-        fg.nNW[i] += omega * (distributions.nNW - nNW);
-        fg.nSW[i] += omega * (distributions.nSW - nSW);
+        fg.nN[i] += omega * (distributions.nN - nN) - (this.gravity * mass) / 9;
+        fg.nS[i] += omega * (distributions.nS - nS) + (this.gravity * mass) / 9;
+        fg.nNE[i] +=
+          omega * (distributions.nNE - nNE) - (this.gravity * mass) / 36;
+        fg.nSE[i] +=
+          omega * (distributions.nSE - nSE) + (this.gravity * mass) / 36;
+        fg.nNW[i] +=
+          omega * (distributions.nNW - nNW) - (this.gravity * mass) / 36;
+        fg.nSW[i] +=
+          omega * (distributions.nSW - nSW) + (this.gravity * mass) / 36;
       }
     }
   }
@@ -416,7 +420,7 @@ export class Simulator {
     const { xdim } = fg;
     const i = x + y * xdim;
     const newrho = optionalNewRho ?? fg.rho[i];
-    const distributions = equil(newrho, newux, newuy, alpha, this.gravity);
+    const distributions = equil(newrho, newux, newuy);
     fg.n0[i] = distributions.n0;
     fg.nE[i] = distributions.nE;
     fg.nW[i] = distributions.nW;
