@@ -11,10 +11,10 @@ export const LBM = (): JSX.Element => {
       return;
     }
 
-    const xdim = 80;
-    const ydim = 32;
+    const xdim = 9;
+    const ydim = 7;
 
-    const simulator = new Simulator(xdim, ydim);
+    const simulator = new Simulator({ xdim, ydim });
     const renderer = new Renderer(canvas, simulator);
 
     renderer.start();
@@ -25,7 +25,7 @@ export const LBM = (): JSX.Element => {
     };
   }, []);
 
-  return <canvas ref={canvasRef} width="800" height="320" />;
+  return <canvas ref={canvasRef} width="180" height="140" />;
 };
 
 export default LBM;

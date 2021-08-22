@@ -1,4 +1,5 @@
-import { Flags, FluidGrid, Simulator } from "../simulator/Simulator";
+import { Flags, FluidGrid } from "../simulator/types";
+import { Simulator } from "../simulator/Simulator";
 import { ColorMap } from "./colorMap";
 
 export enum PlotTypes {

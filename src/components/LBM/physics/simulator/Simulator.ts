@@ -1,88 +1,12 @@
-const noGas = false;
-const ups = 1;
-const g = 0; // 0.001
+import { restingWater } from "./initialConditions/restingWater";
+import { simpleBarrier } from "./initialConditions/simpleBarrier";
+import { wall } from "./initialConditions/wall";
+import { moveInDirection } from "./moveInDirection";
+import { Dir, Flags, FluidGrid, SetEquil } from "./types";
 
 const four9ths = 4.0 / 9.0; // abbreviations
 const one9th = 1.0 / 9.0;
 const one36th = 1.0 / 36.0;
-
-type Dir = "nS" | "nN" | "nW" | "nE" | "nSW" | "nNE" | "nSE" | "nNW";
-
-const moveInDirection = (dir: Dir) => {
-  let x1, y1: number;
-  let oppositeDir: Dir;
-  switch (dir) {
-    case "nN":
-      x1 = 0;
-      y1 = 1;
-      oppositeDir = "nS";
-      break;
-    case "nS":
-      x1 = 0;
-      y1 = -1;
-      oppositeDir = "nN";
-      break;
-    case "nE":
-      x1 = 1;
-      y1 = 0;
-      oppositeDir = "nW";
-      break;
-    case "nW":
-      x1 = -1;
-      y1 = 0;
-      oppositeDir = "nE";
-      break;
-    case "nNE":
-      x1 = 1;
-      y1 = 1;
-      oppositeDir = "nSW";
-      break;
-    case "nSW":
-      x1 = -1;
-      y1 = -1;
-      oppositeDir = "nNE";
-      break;
-    case "nNW":
-      x1 = -1;
-      y1 = 1;
-      oppositeDir = "nSE";
-      break;
-    case "nSE":
-      x1 = 1;
-      y1 = -1;
-      oppositeDir = "nNW";
-      break;
-  }
-  return { x: x1, y: y1, oppositeDir };
-};
-
-export enum Flags {
-  barrier = "barrier",
-  fluid = "fluid",
-  gas = "gas",
-  interface = "interface"
-}
-
-export interface FluidGrid {
-  xdim: number;
-  ydim: number;
-  n0: number[];
-  nN: number[];
-  nS: number[];
-  nE: number[];
-  nW: number[];
-  nNE: number[];
-  nSE: number[];
-  nNW: number[];
-  nSW: number[];
-  rho: number[];
-  ux: number[];
-  uy: number[];
-  curl: number[];
-  flag: Flags[];
-  m: number[];
-  alpha: number[];
-}
 
 export class Simulator {
   public isRunning = false;
@@ -93,17 +17,31 @@ export class Simulator {
   private lastTimeSteps: number[] = [];
   private lastUpdateTimestamp = 0;
   private maxUps: number;
+  private gravity: number;
+  public totalMass: number;
 
-  constructor(
-    xdim: number,
-    ydim: number,
-    fluidSpeed = 0.1,
+  constructor({
+    xdim,
+    ydim,
+    fluidSpeed = 0,
     viscosity = 0.02,
-    maxUps = ups
-  ) {
+    maxUps = 0,
+    gravity = 0,
+    setInitialFluidGrid = restingWater
+  }: {
+    xdim: number;
+    ydim: number;
+    fluidSpeed?: number;
+    viscosity?: number;
+    maxUps?: number;
+    gravity?: number;
+    setInitialFluidGrid?: (fluidGrid: FluidGrid, setEquil: SetEquil) => void;
+  }) {
     this.fluidSpeed = fluidSpeed;
     this.viscosity = viscosity;
     this.maxUps = maxUps;
+    this.gravity = gravity;
+    this.totalMass = 0;
     this.fluidGrid = {
       xdim,
       ydim,
@@ -145,48 +83,7 @@ export class Simulator {
       alpha: new Array(xdim * ydim)
     };
 
-    // Initialize to a steady rightward flow with no barriers:
-    for (let y = 0; y < ydim; y++) {
-      for (let x = 0; x < xdim; x++) {
-        this.fluidGrid.flag[x + y * xdim] = Flags.fluid;
-        this.setEquil(x, y, this.fluidSpeed, 0, 1);
-        this.fluidGrid.curl[x + y * xdim] = 0.0;
-      }
-    }
-
-    if (noGas === false) {
-      // gas
-      for (let y = 0; y < ydim; y++) {
-        for (let x = Math.floor(xdim / 2); x < xdim - 1; x++) {
-          this.fluidGrid.flag[x + y * xdim] = Flags.gas;
-        }
-      }
-
-      // interface
-      for (let y = 0; y < xdim; y++) {
-        const x = Math.floor(xdim / 2);
-        this.fluidGrid.flag[x + y * xdim] = Flags.interface;
-        this.setEquil(x, y, 0, 0, 1, 0);
-        this.fluidGrid.curl[x + y * xdim] = 0.0;
-      }
-    }
-
-    // // Create a simple linear "wall" barrier (intentionally a little offset from center):
-    // const barrierSize = 8;
-    // for (let y = ydim / 2 - barrierSize; y <= ydim / 2 + barrierSize; y++) {
-    //   const x = 20;
-    //   this.fluidGrid.flag[x + y * xdim] = Flags.barrier;
-    // }
-
-    // box
-    for (let x = 0; x < xdim; x++) {
-      this.fluidGrid.flag[x + 0 * xdim] = Flags.barrier;
-      this.fluidGrid.flag[x + (ydim - 1) * xdim] = Flags.barrier;
-    }
-    for (let y = 0; y < ydim; y++) {
-      this.fluidGrid.flag[0 + y * xdim] = Flags.barrier;
-      this.fluidGrid.flag[xdim - 1 + y * xdim] = Flags.barrier;
-    }
+    setInitialFluidGrid(this.fluidGrid, this.setEquil.bind(this));
   }
 
   get ups(): number {
@@ -198,6 +95,9 @@ export class Simulator {
   }
 
   start(): void {
+    if (this.maxUps === 0) {
+      return;
+    }
     this.isRunning = true;
     this.lastUpdateTimestamp = Date.now();
     this.simulateLoop();
@@ -207,16 +107,20 @@ export class Simulator {
     this.isRunning = false;
   }
 
-  simulateLoop(): void {
+  step(): void {
     this.setBoundaries();
-    const { xdim, ydim } = this.fluidGrid;
-
     this.collide();
     this.computeMass();
     this.stream();
     this.computeAlpha();
     this.moveInterface();
     this.computeCurl();
+  }
+
+  simulateLoop(): void {
+    this.step();
+
+    const { xdim, ydim } = this.fluidGrid;
 
     let stable = true;
     for (let x = 0; x < xdim; x++) {
@@ -244,8 +148,10 @@ export class Simulator {
   }
 
   setBoundaries(): void {
-    return;
     const u0 = this.fluidSpeed;
+    if (u0 === 0) {
+      return;
+    }
     const { xdim, ydim } = this.fluidGrid;
     for (let y = 10; y < ydim - 10; y++) {
       this.setEquil(xdim - 2, y, u0, 0, 1);
@@ -280,8 +186,7 @@ export class Simulator {
         fg.rho[i] = rho;
         const ux = (nE + nNE + nSE - nW - nNW - nSW) / rho;
         fg.ux[i] = ux;
-        // gravity
-        const uy = (nN + nNE + nNW - nS - nSE - nSW) / rho - g;
+        const uy = (nN + nNE + nNW - nS - nSE - nSW) / rho - this.gravity;
         fg.uy[i] = uy;
         // pre-compute a bunch of stuff for optimization
         const one9thrho = rho / 9;
@@ -355,7 +260,7 @@ export class Simulator {
         totalMass += fg.m[i];
       }
     }
-    console.log(Math.round(totalMass));
+    this.totalMass = totalMass;
   }
 
   stream(): void {
@@ -454,9 +359,8 @@ export class Simulator {
         if (fg.flag[i] !== Flags.interface) {
           continue;
         }
-        console.log(fg.alpha[i]);
-        if (fg.alpha[i] > 1) {
-          console.log(fg.alpha[i], "lost", fg.m[i] - fg.rho[i]);
+        const beta = 0.001;
+        if (fg.alpha[i] > 1 + beta) {
           // TODO we lose too much mass doing that
           fg.m[i] = fg.rho[i];
           // become fluid
@@ -495,8 +399,7 @@ export class Simulator {
           }
           return;
         }
-        if (fg.alpha[i] < 0) {
-          console.log(fg.alpha[i], "gained", fg.m[i] - fg.rho[i]);
+        if (fg.alpha[i] < -beta) {
           // become gas
           fg.flag[i] = Flags.gas;
           if (fg.flag[x + (y - 1) * xdim] === Flags.fluid) {
