@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Story, Meta } from "@storybook/react/types-6-0";
 import { BlocTable, BlocTableProps } from ".";
-import { Bloc } from "./types";
+import { Bloc, TypologieDeLots } from "./types";
 import { produce } from "immer";
 
 const createTypologie = (nom: string) => ({
@@ -29,18 +29,48 @@ export default {
 
 const Template: Story<BlocTableProps> = args => {
   const [blocList, setBlocList] = useState(args.blocList ?? []);
-  return (
-    <BlocTable
-      {...args}
-      blocList={blocList}
-      onAddTypologie={(nomBloc, typologie) => {
-        args.onAddTypologie(nomBloc, typologie);
+  const onAddTypologie = useCallback(
+    (nomBloc: string, typologie: string) => {
+      args.onAddTypologie(nomBloc, typologie);
+      setBlocList(blocList => {
         const newBlocList = produce(blocList, draft => {
           const bloc = draft.find(({ nom }) => nom === nomBloc);
           bloc?.typologieDeLotsList?.push(createTypologie(typologie));
         });
-        setBlocList(newBlocList);
-      }}
+        return newBlocList;
+      });
+    },
+    [setBlocList]
+  );
+
+  const onChangeCell = useCallback(
+    (
+      nomBloc: string,
+      nomTypologie: string,
+      key: keyof TypologieDeLots,
+      value: any
+    ) => {
+      args.onChangeCell(nomBloc, nomTypologie, key, value);
+      setBlocList(blocList => {
+        const newBlocList = produce(blocList, draft => {
+          const bloc = draft.find(({ nom }) => nom === nomBloc);
+          const typologie = bloc?.typologieDeLotsList?.find(
+            ({ nom }) => nom === nomTypologie
+          );
+          Object.assign(typologie, { [key]: value });
+        });
+        return newBlocList;
+      });
+    },
+    [setBlocList]
+  );
+
+  return (
+    <BlocTable
+      {...args}
+      blocList={blocList}
+      onAddTypologie={onAddTypologie}
+      onChangeCell={onChangeCell}
     />
   );
 };
@@ -109,6 +139,47 @@ const blocList: Bloc[] = [
     modeTva: undefined,
     caTtc: undefined,
     typologieDeLotsList: []
+  },
+  {
+    nom: "Individuel",
+    nombreDeLots: 0,
+    pourcentage: 0,
+    smabParLogement: 0,
+    puTtcLotsPrincipaux: 0,
+    puTtcLotsAnnexes: 0,
+    prixMoyenTtcParM2: 0,
+    caHt: 0,
+    tauxTva: 20,
+    modeTva: undefined,
+    caTtc: undefined,
+    typologieDeLotsList: [
+      {
+        nom: "Terrain",
+        nombreDeLots: 0,
+        pourcentage: 0,
+        smabParLogement: 0,
+        puTtcLotsPrincipaux: 0,
+        puTtcLotsAnnexes: 0,
+        prixMoyenTtcParM2: 0,
+        caHt: 0,
+        tauxTva: 20,
+        modeTva: "T",
+        caTtc: 0
+      },
+      {
+        nom: "Autres",
+        nombreDeLots: 0,
+        pourcentage: 0,
+        smabParLogement: 0,
+        puTtcLotsPrincipaux: 0,
+        puTtcLotsAnnexes: 0,
+        prixMoyenTtcParM2: 0,
+        caHt: 0,
+        tauxTva: 20,
+        modeTva: "T",
+        caTtc: 0
+      }
+    ]
   }
 ];
 
