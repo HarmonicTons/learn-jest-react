@@ -61,6 +61,7 @@
     "@types/lodash": "^4.14.161",
     "@types/mui-datatables": "^3.7.7",
     "axios": "^0.20.0",
+    "immer": "^9.0.6",
     "lodash": "^4.17.20",
     "mui-datatables": "^3.7.8",
     "tslib": "^2.0.1"
