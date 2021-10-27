@@ -3,18 +3,13 @@ import MUIDataTable, {
   MUIDataTableColumnDef,
   MUIDataTableOptions
 } from "mui-datatables";
-import React, {
-  createContext,
-  memo,
-  useCallback,
-  useContext,
-  useMemo,
-  useState
-} from "react";
+import React, { memo, useCallback, useMemo, useState } from "react";
+import { useSelector } from "react-redux";
+import { BlocTableState } from "../../../App";
 import { ControlCell } from "../../ControlCell";
 import { useSwitchRow } from "../../hooks/useSwitchRow";
 import { TypologieDeLots } from "../../types";
-import { EditableCell } from "./EditableCell";
+import { EditableCell } from "../../EditableCell";
 import { ExpandedTypologieContent } from "./ExpandedTypologieContent";
 
 const theme = createTheme({
@@ -58,22 +53,64 @@ const cellProps = { style: { minWidth: "160px" } };
 const setCellProps = () => cellProps;
 
 export interface TypologieTableProps {
-  typologieDeLotsList: TypologieDeLots[];
-  onChangeCell: (
-    nomTypologie: string,
-    key: keyof TypologieDeLots,
-    value: any
-  ) => void;
+  blocIndex: number;
 }
 
-export const TypologieTableContext = createContext<TypologieDeLots[]>([]);
-export const useTypologie = (dataIndex: number): TypologieDeLots => {
-  const typologieDeLotsList = useContext(TypologieTableContext);
-  return typologieDeLotsList[dataIndex];
-};
+const TypologieCell = memo(
+  ({
+    blocIndex,
+    dataIndex,
+    rowsExpanded,
+    switchRowExpanded,
+    rowsSelected,
+    switchRowSelected
+  }: any) => {
+    const handleExpand = useCallback(() => switchRowExpanded(dataIndex), [
+      dataIndex,
+      switchRowExpanded
+    ]);
+    const handleSelect = useCallback(() => switchRowSelected(dataIndex), [
+      dataIndex,
+      switchRowSelected
+    ]);
+    const nom = useSelector<BlocTableState, string>(
+      state => state.blocList[blocIndex].typologieDeLotsList[dataIndex].nom
+    );
+    const hasCaracteristiques = useSelector<BlocTableState, boolean>(state =>
+      Boolean(
+        state.blocList[blocIndex].typologieDeLotsList[dataIndex]
+          .caracteristiques
+      )
+    );
+    return (
+      <ControlCell
+        value={nom}
+        isExpandable={hasCaracteristiques}
+        isExpanded={rowsExpanded?.includes(dataIndex) ?? false}
+        onExpand={handleExpand}
+        isSelectable={true}
+        isSelected={rowsSelected?.includes(dataIndex) ?? false}
+        onSelect={handleSelect}
+      />
+    );
+  }
+);
+TypologieCell.displayName = "TypologieCell";
 
 export const TypologieTable = memo(
-  ({ typologieDeLotsList, onChangeCell }: TypologieTableProps): JSX.Element => {
+  ({ blocIndex }: TypologieTableProps): JSX.Element => {
+    // Shape of typologieDeLotsList
+    // WARNING: this value will NOT be updated it is used only to init MUIDataTable
+    // only the size of the array matters
+    // to get the actual typologieDeLotsList use the store
+    const typologieDeLotsListShape = useSelector<
+      BlocTableState,
+      TypologieDeLots[]
+    >(
+      state => state.blocList[blocIndex].typologieDeLotsList,
+      (a, b) => a.length === b.length
+    );
+
     const [rowsExpanded, switchRowExpanded] = useSwitchRow();
     const [rowsSelected, switchRowSelected] = useSwitchRow();
     const [rowFocused, setRowFocused] = useState<number | undefined>();
@@ -82,38 +119,32 @@ export const TypologieTable = memo(
       (rowData: any[], { dataIndex }: { dataIndex: number }) => {
         // length of the sub-row
         const colSpan = rowData.length + 1;
-
-        const { caracteristiques } = typologieDeLotsList[dataIndex];
-
         return (
           <ExpandedTypologieContent
+            blocIndex={blocIndex}
+            dataIndex={dataIndex}
             colSpan={colSpan}
-            caracteristiques={caracteristiques}
           />
         );
       },
-      [typologieDeLotsList]
+      [blocIndex]
     );
 
     const renderTypologieCell = useCallback(
       (dataIndex: number) => {
-        const typologie = typologieDeLotsList[dataIndex];
-        const handleExpand = () => switchRowExpanded(dataIndex);
-        const handleSelect = () => switchRowSelected(dataIndex);
         return (
-          <ControlCell
-            value={typologie.nom}
-            isExpandable={Boolean(typologie.caracteristiques)}
-            isExpanded={rowsExpanded?.includes(dataIndex) ?? false}
-            onExpand={handleExpand}
-            isSelectable={true}
-            isSelected={rowsSelected?.includes(dataIndex) ?? false}
-            onSelect={handleSelect}
+          <TypologieCell
+            blocIndex={blocIndex}
+            dataIndex={dataIndex}
+            rowsExpanded={rowsExpanded}
+            switchRowExpanded={switchRowExpanded}
+            rowsSelected={rowsSelected}
+            switchRowSelected={switchRowSelected}
           />
         );
       },
       [
-        typologieDeLotsList,
+        blocIndex,
         rowsExpanded,
         switchRowExpanded,
         rowsSelected,
@@ -121,21 +152,19 @@ export const TypologieTable = memo(
       ]
     );
 
-    const EditableCellCreator = useCallback(
+    const renderEditableCellCreator = useCallback(
       (key: keyof TypologieDeLots) => {
         // eslint-disable-next-line react/display-name
         return (dataIndex: number) => {
           return (
             <EditableCell
-              dataIndex={dataIndex}
-              onChangeCell={onChangeCell}
-              rowFocused={rowFocused}
-              typologieKey={key}
+              path={`${blocIndex}.typologieDeLotsList.${dataIndex}.${key}`}
+              isEditing={rowFocused === dataIndex}
             />
           );
         };
       },
-      [rowFocused, onChangeCell]
+      [rowFocused, blocIndex]
     );
 
     const columns: MUIDataTableColumnDef[] = useMemo(
@@ -150,75 +179,79 @@ export const TypologieTable = memo(
         {
           name: "nombreDeLots",
           options: {
-            customBodyRenderLite: EditableCellCreator("nombreDeLots"),
+            customBodyRenderLite: renderEditableCellCreator("nombreDeLots"),
             setCellProps
           }
         },
         {
           name: "pourcentage",
           options: {
-            customBodyRenderLite: EditableCellCreator("pourcentage"),
+            customBodyRenderLite: renderEditableCellCreator("pourcentage"),
             setCellProps
           }
         },
         {
           name: "smabParLogement",
           options: {
-            customBodyRenderLite: EditableCellCreator("smabParLogement"),
+            customBodyRenderLite: renderEditableCellCreator("smabParLogement"),
             setCellProps
           }
         },
         {
           name: "puTtcLotsPrincipaux",
           options: {
-            customBodyRenderLite: EditableCellCreator("puTtcLotsPrincipaux"),
+            customBodyRenderLite: renderEditableCellCreator(
+              "puTtcLotsPrincipaux"
+            ),
             setCellProps
           }
         },
         {
           name: "puTtcLotsAnnexes",
           options: {
-            customBodyRenderLite: EditableCellCreator("puTtcLotsAnnexes"),
+            customBodyRenderLite: renderEditableCellCreator("puTtcLotsAnnexes"),
             setCellProps
           }
         },
         {
           name: "prixMoyenTtcParM2",
           options: {
-            customBodyRenderLite: EditableCellCreator("prixMoyenTtcParM2"),
+            customBodyRenderLite: renderEditableCellCreator(
+              "prixMoyenTtcParM2"
+            ),
             setCellProps
           }
         },
         {
           name: "caHt",
           options: {
-            customBodyRenderLite: EditableCellCreator("caHt"),
+            customBodyRenderLite: renderEditableCellCreator("caHt"),
             setCellProps
           }
         },
         {
           name: "tauxTva",
           options: {
-            customBodyRenderLite: EditableCellCreator("tauxTva"),
+            customBodyRenderLite: renderEditableCellCreator("tauxTva"),
             setCellProps
           }
         },
         {
           name: "modeTva",
           options: {
-            customBodyRenderLite: EditableCellCreator("modeTva"),
+            customBodyRenderLite: renderEditableCellCreator("modeTva"),
             setCellProps
           }
         },
         {
           name: "caTtc",
           options: {
-            customBodyRenderLite: EditableCellCreator("caTtc"),
+            customBodyRenderLite: renderEditableCellCreator("caTtc"),
             setCellProps
           }
         }
       ],
-      [renderTypologieCell, EditableCellCreator]
+      [renderTypologieCell, renderEditableCellCreator]
     );
 
     const options: MUIDataTableOptions = useMemo(
@@ -257,14 +290,12 @@ export const TypologieTable = memo(
 
     return (
       <MuiThemeProvider theme={theme}>
-        <TypologieTableContext.Provider value={typologieDeLotsList}>
-          <MUIDataTable
-            columns={columns}
-            data={typologieDeLotsList}
-            title="Books Directory"
-            options={options}
-          />
-        </TypologieTableContext.Provider>
+        <MUIDataTable
+          columns={columns}
+          data={typologieDeLotsListShape}
+          title="Typologies"
+          options={options}
+        />
       </MuiThemeProvider>
     );
   }

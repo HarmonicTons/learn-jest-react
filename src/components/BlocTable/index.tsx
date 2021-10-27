@@ -3,19 +3,15 @@ import MUIDataTable, {
   MUIDataTableColumnDef,
   MUIDataTableOptions
 } from "mui-datatables";
-import React, {
-  createContext,
-  CSSProperties,
-  memo,
-  useCallback,
-  useContext,
-  useMemo
-} from "react";
-import { Bloc, TypologieDeLots } from "./types";
+import React, { CSSProperties, memo, useCallback, useMemo } from "react";
+import { Bloc } from "./types";
 import { ControlCell } from "./ControlCell";
 import { HeadLabelWithUnit } from "./HeadLabelWithUnit";
 import { useSwitchRow } from "./hooks/useSwitchRow";
 import { ExpandedBlocContent } from "./ExpandedBlocContent";
+import { useSelector } from "react-redux";
+import { BlocTableState } from "../App";
+import { EditableCell } from "./EditableCell";
 
 /**
  * Configure a HeadLabelWithUnit with a specific unit
@@ -34,88 +30,6 @@ const HeadLabelWithUnitCreator = ({
 };
 
 const setCellProps = () => ({ style: { minWidth: "160px" } });
-
-const baseO = [
-  {
-    name: "nombreDeLots",
-    label: "Nombre de lots",
-    options: {
-      customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "€" }),
-      setCellProps
-    }
-  },
-  {
-    name: "pourcentage",
-    label: "Pourcentage",
-    options: {
-      customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "%" }),
-      setCellProps
-    }
-  },
-  {
-    name: "smabParLogement",
-    label: "SMAB / logement",
-    options: {
-      customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "m²" }),
-      setCellProps
-    }
-  },
-  {
-    name: "puTtcLotsPrincipaux",
-    label: "PU TTC lots principaux",
-    options: {
-      customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "€" }),
-      setCellProps
-    }
-  },
-  {
-    name: "puTtcLotsAnnexes",
-    label: "PU TTC lots annexes",
-    options: {
-      customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "€" }),
-      setCellProps
-    }
-  },
-  {
-    name: "prixMoyenTtcParM2",
-    label: "Prix moyen TTC/m²",
-    options: {
-      customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "€" }),
-      setCellProps
-    }
-  },
-  {
-    name: "caHt",
-    label: "CA HT",
-    options: {
-      customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "K€" }),
-      setCellProps
-    }
-  },
-  {
-    name: "tauxTva",
-    label: "Taux TVA",
-    options: {
-      customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "%" }),
-      setCellProps
-    }
-  },
-  {
-    name: "modeTva",
-    label: "Mode TVA",
-    options: {
-      setCellProps
-    }
-  },
-  {
-    name: "caTtc",
-    label: "CA TTC",
-    options: {
-      customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "K€" }),
-      setCellProps
-    }
-  }
-];
 
 const theme = createTheme({
   overrides: {
@@ -144,34 +58,17 @@ const theme = createTheme({
   }
 });
 
-export interface BlocTableProps {
-  blocList: Bloc[];
-  onAddTypologie: (nomBloc: string, typologieNom: string) => void;
-  onChangeCell: (
-    nomBloc: string,
-    nomTypologie: string,
-    key: keyof TypologieDeLots,
-    value: any
-  ) => void;
-}
-
-export const BlocTableContext = createContext<Bloc[]>([]);
-export const useBloc = (dataIndex: number): Bloc => {
-  const blocList = useContext(BlocTableContext);
-  console.log("bim");
-  return blocList[dataIndex];
-};
-
 const BlocCell = memo(({ dataIndex, rowsExpanded, switchRowExpanded }: any) => {
-  console.log("RENDER BlocCell");
-  const bloc = useBloc(dataIndex);
   const handleExpand = useCallback(() => switchRowExpanded(dataIndex), [
     dataIndex,
     switchRowExpanded
   ]);
+  const nomBloc = useSelector<BlocTableState, string>(
+    state => state.blocList[dataIndex].nom
+  );
   return (
     <ControlCell
-      value={bloc.nom}
+      value={nomBloc}
       isExpandable={true}
       isExpanded={rowsExpanded?.includes(dataIndex) ?? false}
       onExpand={handleExpand}
@@ -181,7 +78,16 @@ const BlocCell = memo(({ dataIndex, rowsExpanded, switchRowExpanded }: any) => {
 BlocCell.displayName = "BlocCell";
 
 export const BlocTable = memo(
-  ({ blocList, onAddTypologie, onChangeCell }: BlocTableProps): JSX.Element => {
+  (): JSX.Element => {
+    // Shape of blocList
+    // WARNING: this value will NOT be updated it is used only to init MUIDataTable
+    // only the size of the array matters
+    // to get the actual blocList use the store
+    const blocListShape = useSelector<BlocTableState, Bloc[]>(
+      state => state.blocList,
+      (a, b) => a.length === b.length
+    );
+
     const [rowsExpanded, switchRowExpanded] = useSwitchRow();
 
     const renderBlocCell = useCallback(
@@ -197,19 +103,25 @@ export const BlocTable = memo(
       [switchRowExpanded, rowsExpanded]
     );
 
+    const renderEditableCellCreator = useCallback((key: keyof Bloc) => {
+      // eslint-disable-next-line react/display-name
+      return (dataIndex: number) => {
+        return (
+          <EditableCell
+            path={`${dataIndex}.${key}`}
+            // TODO
+            isEditing={false}
+          />
+        );
+      };
+    }, []);
+
     const renderExpandableRow = useCallback(
       (rowData: any[], { dataIndex }: { dataIndex: number }) => {
         const colSpan = rowData.length + 1;
-        return (
-          <ExpandedBlocContent
-            dataIndex={dataIndex}
-            colSpan={colSpan}
-            onChangeCell={onChangeCell}
-            onAddTypologie={onAddTypologie}
-          />
-        );
+        return <ExpandedBlocContent dataIndex={dataIndex} colSpan={colSpan} />;
       },
-      [onAddTypologie, onChangeCell]
+      []
     );
 
     const columns: MUIDataTableColumnDef[] = useMemo(
@@ -222,9 +134,101 @@ export const BlocTable = memo(
             setCellProps
           }
         },
-        ...baseO
+        {
+          name: "nombreDeLots",
+          label: "Nombre de lots",
+          options: {
+            customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "€" }),
+            customBodyRenderLite: renderEditableCellCreator("nombreDeLots"),
+            setCellProps
+          }
+        },
+        {
+          name: "pourcentage",
+          label: "Pourcentage",
+          options: {
+            customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "%" }),
+            customBodyRenderLite: renderEditableCellCreator("pourcentage"),
+            setCellProps
+          }
+        },
+        {
+          name: "smabParLogement",
+          label: "SMAB / logement",
+          options: {
+            customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "m²" }),
+            customBodyRenderLite: renderEditableCellCreator("smabParLogement"),
+            setCellProps
+          }
+        },
+        {
+          name: "puTtcLotsPrincipaux",
+          label: "PU TTC lots principaux",
+          options: {
+            customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "€" }),
+            customBodyRenderLite: renderEditableCellCreator(
+              "puTtcLotsPrincipaux"
+            ),
+            setCellProps
+          }
+        },
+        {
+          name: "puTtcLotsAnnexes",
+          label: "PU TTC lots annexes",
+          options: {
+            customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "€" }),
+            customBodyRenderLite: renderEditableCellCreator("puTtcLotsAnnexes"),
+            setCellProps
+          }
+        },
+        {
+          name: "prixMoyenTtcParM2",
+          label: "Prix moyen TTC/m²",
+          options: {
+            customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "€" }),
+            customBodyRenderLite: renderEditableCellCreator(
+              "prixMoyenTtcParM2"
+            ),
+            setCellProps
+          }
+        },
+        {
+          name: "caHt",
+          label: "CA HT",
+          options: {
+            customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "K€" }),
+            customBodyRenderLite: renderEditableCellCreator("caHt"),
+            setCellProps
+          }
+        },
+        {
+          name: "tauxTva",
+          label: "Taux TVA",
+          options: {
+            customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "%" }),
+            customBodyRenderLite: renderEditableCellCreator("tauxTva"),
+            setCellProps
+          }
+        },
+        {
+          name: "modeTva",
+          label: "Mode TVA",
+          options: {
+            setCellProps,
+            customBodyRenderLite: renderEditableCellCreator("modeTva")
+          }
+        },
+        {
+          name: "caTtc",
+          label: "CA TTC",
+          options: {
+            customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "K€" }),
+            customBodyRenderLite: renderEditableCellCreator("caTtc"),
+            setCellProps
+          }
+        }
       ],
-      [renderBlocCell]
+      [renderBlocCell, renderEditableCellCreator]
     );
 
     const options: MUIDataTableOptions = useMemo(() => {
@@ -238,14 +242,12 @@ export const BlocTable = memo(
 
     return (
       <MuiThemeProvider theme={theme}>
-        <BlocTableContext.Provider value={blocList}>
-          <MUIDataTable
-            columns={columns}
-            data={blocList}
-            title="Books Directory"
-            options={options}
-          />
-        </BlocTableContext.Provider>
+        <MUIDataTable
+          columns={columns}
+          data={blocListShape}
+          title="Blocs"
+          options={options}
+        />
       </MuiThemeProvider>
     );
   }
