@@ -1,8 +1,5 @@
 import { createTheme, MuiThemeProvider } from "@material-ui/core";
-import MUIDataTable, {
-  MUIDataTableColumnDef,
-  MUIDataTableOptions
-} from "mui-datatables";
+import { MUIDataTableColumnDef, MUIDataTableOptions } from "mui-datatables";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { BlocTableState } from "../../../App";
@@ -11,6 +8,7 @@ import { useSwitchRow } from "../../hooks/useSwitchRow";
 import { TypologieDeLots } from "../../types";
 import { EditableCell } from "../../EditableCell";
 import { ExpandedTypologieContent } from "./ExpandedTypologieContent";
+import { StoreConnectedDataTable } from "../../StoreConnectedDataTable";
 
 const theme = createTheme({
   overrides: {
@@ -99,18 +97,6 @@ TypologieCell.displayName = "TypologieCell";
 
 export const TypologieTable = memo(
   ({ blocIndex }: TypologieTableProps): JSX.Element => {
-    // Shape of typologieDeLotsList
-    // WARNING: this value will NOT be updated it is used only to init MUIDataTable
-    // only the size of the array matters
-    // to get the actual typologieDeLotsList use the store
-    const typologieDeLotsListShape = useSelector<
-      BlocTableState,
-      TypologieDeLots[]
-    >(
-      state => state.blocList[blocIndex].typologieDeLotsList,
-      (a, b) => a.length === b.length
-    );
-
     const [rowsExpanded, switchRowExpanded] = useSwitchRow();
     const [rowsSelected, switchRowSelected] = useSwitchRow();
     const [rowFocused, setRowFocused] = useState<number | undefined>();
@@ -290,9 +276,9 @@ export const TypologieTable = memo(
 
     return (
       <MuiThemeProvider theme={theme}>
-        <MUIDataTable
+        <StoreConnectedDataTable
           columns={columns}
-          data={typologieDeLotsListShape}
+          selector={state => state.blocList[blocIndex].typologieDeLotsList}
           title="Typologies"
           options={options}
         />

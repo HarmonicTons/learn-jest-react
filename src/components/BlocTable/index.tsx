@@ -1,8 +1,5 @@
 import { createTheme, MuiThemeProvider } from "@material-ui/core";
-import MUIDataTable, {
-  MUIDataTableColumnDef,
-  MUIDataTableOptions
-} from "mui-datatables";
+import { MUIDataTableColumnDef, MUIDataTableOptions } from "mui-datatables";
 import React, { CSSProperties, memo, useCallback, useMemo } from "react";
 import { Bloc } from "./types";
 import { ControlCell } from "./ControlCell";
@@ -10,8 +7,9 @@ import { HeadLabelWithUnit } from "./HeadLabelWithUnit";
 import { useSwitchRow } from "./hooks/useSwitchRow";
 import { ExpandedBlocContent } from "./ExpandedBlocContent";
 import { useSelector } from "react-redux";
-import { BlocTableState } from "../App";
 import { EditableCell } from "./EditableCell";
+import { StoreConnectedDataTable } from "./StoreConnectedDataTable";
+import { BlocTableState } from "../App";
 
 /**
  * Configure a HeadLabelWithUnit with a specific unit
@@ -79,15 +77,6 @@ BlocCell.displayName = "BlocCell";
 
 export const BlocTable = memo(
   (): JSX.Element => {
-    // Shape of blocList
-    // WARNING: this value will NOT be updated it is used only to init MUIDataTable
-    // only the size of the array matters
-    // to get the actual blocList use the store
-    const blocListShape = useSelector<BlocTableState, Bloc[]>(
-      state => state.blocList,
-      (a, b) => a.length === b.length
-    );
-
     const [rowsExpanded, switchRowExpanded] = useSwitchRow();
 
     const renderBlocCell = useCallback(
@@ -242,9 +231,9 @@ export const BlocTable = memo(
 
     return (
       <MuiThemeProvider theme={theme}>
-        <MUIDataTable
+        <StoreConnectedDataTable
           columns={columns}
-          data={blocListShape}
+          selector={state => state.blocList}
           title="Blocs"
           options={options}
         />
