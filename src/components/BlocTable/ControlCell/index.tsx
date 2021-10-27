@@ -12,6 +12,9 @@ export interface ControlCellProps {
   onSelect?: () => void;
 }
 
+const IconButtonStyle = { color: "#996600" };
+const spanStyle = { color: "#996600", cursor: "pointer" };
+
 /**
  * ControlCell
  * Custom render for a cell with expand/collapse arrow & select
@@ -26,21 +29,15 @@ export const ControlCell = memo(
     isSelected = false,
     onSelect = () => undefined
   }: ControlCellProps): JSX.Element => {
-    console.log("RENDER ControlCell");
     return (
       <span>
         {isSelectable && <Checkbox onChange={onSelect} value={isSelected} />}
         {isExpandable && (
-          <IconButton onClick={onExpand} style={{ color: "#996600" }}>
+          <IconButton onClick={onExpand} style={IconButtonStyle}>
             {isExpanded ? <ExpandLess /> : <ExpandMore />}
           </IconButton>
         )}
-        <span
-          role="button"
-          style={
-            isExpandable ? { color: "#996600", cursor: "pointer" } : undefined
-          }
-        >
+        <span role="button" style={isExpandable ? spanStyle : undefined}>
           {value}
         </span>
       </span>

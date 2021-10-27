@@ -1,25 +1,30 @@
-import React, { CSSProperties, memo } from "react";
+import React, { CSSProperties, memo, useMemo } from "react";
 
 interface HeadLabelWithUnitProps {
   name: string;
   unit?: string;
   style?: CSSProperties;
 }
+
+const itemStyle: CSSProperties = { textAlign: "left", height: "auto" };
+
 /**
  * Custom Header with unit
  */
 export const HeadLabelWithUnit = memo(
   ({ name, unit, style }: HeadLabelWithUnitProps) => {
-    console.log("RENDER HeadLabelWithUnit");
-    const containerStyle: CSSProperties = {
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "space-between",
-      alignItems: "flex-start",
-      fontSize: "12px",
-      ...style
-    };
-    const itemStyle: CSSProperties = { textAlign: "left", height: "auto" };
+    const containerStyle: CSSProperties = useMemo(
+      () => ({
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        fontSize: "12px",
+        ...style
+      }),
+      [style]
+    );
+
     return (
       <div style={containerStyle}>
         <span style={itemStyle}>{name}</span>

@@ -9,7 +9,6 @@ export interface AddTypologieProps {
 
 export const AddTypologie = memo(
   ({ value, onChange, valueList }: AddTypologieProps): JSX.Element => {
-    console.log("RENDER AddTypologie");
     return (
       <FormControl variant="outlined">
         <InputLabel id="demo-simple-select-outlined-label">

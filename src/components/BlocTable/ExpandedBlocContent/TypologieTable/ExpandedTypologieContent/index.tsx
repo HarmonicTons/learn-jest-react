@@ -14,7 +14,6 @@ export const ExpandedTypologieContent = memo(
     colSpan,
     caracteristiques
   }: ExpandedTypologieContentProps): JSX.Element => {
-    console.log("RENDER ExpandedTypologieContent");
     return (
       <TableRow>
         <TableCell colSpan={colSpan}>

@@ -8,7 +8,6 @@ export interface CaracteristiquesProps {
 
 export const Caracteristiques = memo(
   ({ gamme, prixMaitrise }: CaracteristiquesProps): JSX.Element => {
-    console.log("RENDER Caracteristiques");
     return (
       <>
         <FormControl variant="outlined">

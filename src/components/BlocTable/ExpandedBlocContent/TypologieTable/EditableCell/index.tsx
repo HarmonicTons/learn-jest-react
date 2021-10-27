@@ -1,13 +1,11 @@
 import React, { ChangeEvent, memo, useCallback } from "react";
 import { TextField } from "@material-ui/core";
 import { TypologieDeLots } from "../../../types";
-import { useTraceUpdate } from "../../../../../hooks/useTraceUpdate";
+import { useTypologie } from "..";
 
 // TODO type properly
 export interface EditableCellProps {
   onChangeCell: any;
-  nomTypologie: string;
-  value: any;
   typologieKey: keyof TypologieDeLots;
   rowFocused?: number;
   dataIndex: number;
@@ -15,22 +13,22 @@ export interface EditableCellProps {
 export const EditableCell = memo(
   ({
     onChangeCell,
-    nomTypologie,
-    value,
     typologieKey,
     rowFocused,
     dataIndex
   }: EditableCellProps): JSX.Element => {
-    console.log("RENDER EditableCell");
+    const typologie = useTypologie(dataIndex);
     const handleChange = useCallback(
       (e: ChangeEvent<any>) =>
-        onChangeCell(nomTypologie, typologieKey, e.target.value),
-      [onChangeCell, nomTypologie, typologieKey]
+        onChangeCell(typologie.nom, typologieKey, e.target.value),
+      [onChangeCell, typologie, typologieKey]
     );
     if (rowFocused !== dataIndex) {
-      return <span>{value}</span>;
+      return <span>{typologie[typologieKey]}</span>;
     }
-    return <TextField value={value} onChange={handleChange} />;
+    return (
+      <TextField value={typologie[typologieKey]} onChange={handleChange} />
+    );
   }
 );
 EditableCell.displayName = "EditableCell";

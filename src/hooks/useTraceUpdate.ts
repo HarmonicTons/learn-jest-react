@@ -11,6 +11,8 @@ export function useTraceUpdate(props: any): void {
     }, {});
     if (Object.keys(changedProps).length > 0) {
       console.log("Changed props:", changedProps);
+    } else {
+      console.log("Rendered with no changes");
     }
     prev.current = props;
   });

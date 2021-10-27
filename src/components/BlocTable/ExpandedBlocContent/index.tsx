@@ -1,56 +1,62 @@
 import { TableCell, TableRow } from "@material-ui/core";
 
-import React, { memo, useCallback } from "react";
+import React, { memo, useCallback, useMemo } from "react";
 import { TypologieTable } from "./TypologieTable";
 import { AddTypologie } from "./AddTypologie";
 import { TypologieDeLots } from "../types";
+import { useBloc } from "..";
 
 export interface ExpandedBlocContentProps {
   colSpan: number;
-  nom: string;
   onChangeCell: (
     nomBloc: string,
     nomTypologie: string,
     key: keyof TypologieDeLots,
     value: any
   ) => void;
-  typologieDeLotsList: TypologieDeLots[];
   onAddTypologie: (nomBloc: string, typologieNom: string) => void;
+  dataIndex: number;
 }
+
+const tableCellStyle = { padding: 0 };
+const divStyle = { margin: "5px" };
 
 export const ExpandedBlocContent = memo(
   ({
     colSpan,
-    nom,
     onChangeCell,
-    typologieDeLotsList,
-    onAddTypologie
+    onAddTypologie,
+    dataIndex
   }: ExpandedBlocContentProps): JSX.Element => {
-    console.log("RENDER ExpandedBlocContent");
+    const { nom, typologieDeLotsList } = useBloc(dataIndex);
     const handleChangeCell = useCallback(
       (nomTypologie: string, key: keyof TypologieDeLots, value: any) =>
         onChangeCell(nom, nomTypologie, key, value),
-      [onChangeCell]
+      [onChangeCell, nom]
+    );
+    const typologieValueList = useMemo(
+      () => [
+        { value: "T1" },
+        { value: "T2" },
+        { value: "T3" },
+        { value: "T4" },
+        { value: "Parking sous-sol" },
+        { value: "Parking extérieur" }
+      ],
+      []
     );
     return (
       <TableRow>
-        <TableCell colSpan={colSpan} style={{ padding: 0 }}>
+        <TableCell colSpan={colSpan} style={tableCellStyle}>
           {typologieDeLotsList.length > 0 && (
             <TypologieTable
               typologieDeLotsList={typologieDeLotsList}
               onChangeCell={handleChangeCell}
             />
           )}
-          <div style={{ margin: "5px" }}>
+          <div style={divStyle}>
             <AddTypologie
-              valueList={[
-                { value: "T1" },
-                { value: "T2" },
-                { value: "T3" },
-                { value: "T4" },
-                { value: "Parking sous-sol" },
-                { value: "Parking extérieur" }
-              ]}
+              valueList={typologieValueList}
               value={""}
               onChange={typologie => onAddTypologie(nom, typologie)}
             />

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Story, Meta } from "@storybook/react/types-6-0";
 import { BlocTable, BlocTableProps } from ".";
 import { Bloc, TypologieDeLots } from "./types";
@@ -40,9 +40,8 @@ const Template: Story<BlocTableProps> = args => {
         return newBlocList;
       });
     },
-    [setBlocList]
+    [setBlocList, args]
   );
-
   const onChangeCell = useCallback(
     (
       nomBloc: string,
@@ -50,7 +49,6 @@ const Template: Story<BlocTableProps> = args => {
       key: keyof TypologieDeLots,
       value: any
     ) => {
-      args.onChangeCell(nomBloc, nomTypologie, key, value);
       setBlocList(blocList => {
         const newBlocList = produce(blocList, draft => {
           const bloc = draft.find(({ nom }) => nom === nomBloc);

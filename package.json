@@ -39,6 +39,7 @@
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-prettier": "^3.1.4",
     "eslint-plugin-react": "^7.20.6",
+    "eslint-plugin-react-hooks": "^4.2.0",
     "jest": "^26.2.0",
     "prettier": "^1.19.1",
     "react": "^16.13.1",
@@ -64,6 +65,9 @@
     "immer": "^9.0.6",
     "lodash": "^4.17.20",
     "mui-datatables": "^3.7.8",
+    "react-redux": "^7.2.6",
+    "react-tracked": "^1.7.4",
+    "redux": "^4.1.1",
     "tslib": "^2.0.1"
   }
 }

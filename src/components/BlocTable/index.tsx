@@ -3,7 +3,14 @@ import MUIDataTable, {
   MUIDataTableColumnDef,
   MUIDataTableOptions
 } from "mui-datatables";
-import React, { CSSProperties, memo, useCallback, useMemo } from "react";
+import React, {
+  createContext,
+  CSSProperties,
+  memo,
+  useCallback,
+  useContext,
+  useMemo
+} from "react";
 import { Bloc, TypologieDeLots } from "./types";
 import { ControlCell } from "./ControlCell";
 import { HeadLabelWithUnit } from "./HeadLabelWithUnit";
@@ -25,6 +32,90 @@ const HeadLabelWithUnitCreator = ({
     <HeadLabelWithUnit name={label ?? name} unit={unit} style={style} />
   );
 };
+
+const setCellProps = () => ({ style: { minWidth: "160px" } });
+
+const baseO = [
+  {
+    name: "nombreDeLots",
+    label: "Nombre de lots",
+    options: {
+      customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "€" }),
+      setCellProps
+    }
+  },
+  {
+    name: "pourcentage",
+    label: "Pourcentage",
+    options: {
+      customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "%" }),
+      setCellProps
+    }
+  },
+  {
+    name: "smabParLogement",
+    label: "SMAB / logement",
+    options: {
+      customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "m²" }),
+      setCellProps
+    }
+  },
+  {
+    name: "puTtcLotsPrincipaux",
+    label: "PU TTC lots principaux",
+    options: {
+      customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "€" }),
+      setCellProps
+    }
+  },
+  {
+    name: "puTtcLotsAnnexes",
+    label: "PU TTC lots annexes",
+    options: {
+      customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "€" }),
+      setCellProps
+    }
+  },
+  {
+    name: "prixMoyenTtcParM2",
+    label: "Prix moyen TTC/m²",
+    options: {
+      customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "€" }),
+      setCellProps
+    }
+  },
+  {
+    name: "caHt",
+    label: "CA HT",
+    options: {
+      customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "K€" }),
+      setCellProps
+    }
+  },
+  {
+    name: "tauxTva",
+    label: "Taux TVA",
+    options: {
+      customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "%" }),
+      setCellProps
+    }
+  },
+  {
+    name: "modeTva",
+    label: "Mode TVA",
+    options: {
+      setCellProps
+    }
+  },
+  {
+    name: "caTtc",
+    label: "CA TTC",
+    options: {
+      customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "K€" }),
+      setCellProps
+    }
+  }
+];
 
 const theme = createTheme({
   overrides: {
@@ -64,44 +155,61 @@ export interface BlocTableProps {
   ) => void;
 }
 
+export const BlocTableContext = createContext<Bloc[]>([]);
+export const useBloc = (dataIndex: number): Bloc => {
+  const blocList = useContext(BlocTableContext);
+  console.log("bim");
+  return blocList[dataIndex];
+};
+
+const BlocCell = memo(({ dataIndex, rowsExpanded, switchRowExpanded }: any) => {
+  console.log("RENDER BlocCell");
+  const bloc = useBloc(dataIndex);
+  const handleExpand = useCallback(() => switchRowExpanded(dataIndex), [
+    dataIndex,
+    switchRowExpanded
+  ]);
+  return (
+    <ControlCell
+      value={bloc.nom}
+      isExpandable={true}
+      isExpanded={rowsExpanded?.includes(dataIndex) ?? false}
+      onExpand={handleExpand}
+    />
+  );
+});
+BlocCell.displayName = "BlocCell";
+
 export const BlocTable = memo(
   ({ blocList, onAddTypologie, onChangeCell }: BlocTableProps): JSX.Element => {
-    console.log("RENDER BlocTable");
     const [rowsExpanded, switchRowExpanded] = useSwitchRow();
 
     const renderBlocCell = useCallback(
       (dataIndex: number) => {
-        const handleExpand = useCallback(() => switchRowExpanded(dataIndex), [
-          switchRowExpanded,
-          dataIndex
-        ]);
         return (
-          <ControlCell
-            value={blocList[dataIndex].nom}
-            isExpandable={true}
-            isExpanded={rowsExpanded?.includes(dataIndex) ?? false}
-            onExpand={handleExpand}
+          <BlocCell
+            dataIndex={dataIndex}
+            rowsExpanded={rowsExpanded}
+            switchRowExpanded={switchRowExpanded}
           />
         );
       },
-      [blocList, switchRowExpanded]
+      [switchRowExpanded, rowsExpanded]
     );
 
     const renderExpandableRow = useCallback(
       (rowData: any[], { dataIndex }: { dataIndex: number }) => {
         const colSpan = rowData.length + 1;
-        const { nom, typologieDeLotsList } = blocList[dataIndex];
         return (
           <ExpandedBlocContent
+            dataIndex={dataIndex}
             colSpan={colSpan}
             onChangeCell={onChangeCell}
-            nom={nom}
             onAddTypologie={onAddTypologie}
-            typologieDeLotsList={typologieDeLotsList}
           />
         );
       },
-      [blocList, onAddTypologie, onChangeCell]
+      [onAddTypologie, onChangeCell]
     );
 
     const columns: MUIDataTableColumnDef[] = useMemo(
@@ -111,90 +219,10 @@ export const BlocTable = memo(
           label: "Blocs",
           options: {
             customBodyRenderLite: renderBlocCell,
-            setCellProps: () => ({
-              style: { minWidth: "150px" }
-            })
+            setCellProps
           }
         },
-        {
-          name: "nombreDeLots",
-          label: "Nombre de lots",
-          options: {
-            customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "€" }),
-            setCellProps: () => ({ style: { minWidth: "96px" } })
-          }
-        },
-        {
-          name: "pourcentage",
-          label: "Pourcentage",
-          options: {
-            customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "%" }),
-            setCellProps: () => ({ style: { minWidth: "96px" } })
-          }
-        },
-        {
-          name: "smabParLogement",
-          label: "SMAB / logement",
-          options: {
-            customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "m²" }),
-            setCellProps: () => ({ style: { minWidth: "96px" } })
-          }
-        },
-        {
-          name: "puTtcLotsPrincipaux",
-          label: "PU TTC lots principaux",
-          options: {
-            customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "€" }),
-            setCellProps: () => ({ style: { minWidth: "96px" } })
-          }
-        },
-        {
-          name: "puTtcLotsAnnexes",
-          label: "PU TTC lots annexes",
-          options: {
-            customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "€" }),
-            setCellProps: () => ({ style: { minWidth: "96px" } })
-          }
-        },
-        {
-          name: "prixMoyenTtcParM2",
-          label: "Prix moyen TTC/m²",
-          options: {
-            customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "€" }),
-            setCellProps: () => ({ style: { minWidth: "96px" } })
-          }
-        },
-        {
-          name: "caHt",
-          label: "CA HT",
-          options: {
-            customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "K€" }),
-            setCellProps: () => ({ style: { minWidth: "96px" } })
-          }
-        },
-        {
-          name: "tauxTva",
-          label: "Taux TVA",
-          options: {
-            customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "%" }),
-            setCellProps: () => ({ style: { minWidth: "96px" } })
-          }
-        },
-        {
-          name: "modeTva",
-          label: "Mode TVA",
-          options: {
-            setCellProps: () => ({ style: { minWidth: "96px" } })
-          }
-        },
-        {
-          name: "caTtc",
-          label: "CA TTC",
-          options: {
-            customHeadLabelRender: HeadLabelWithUnitCreator({ unit: "K€" }),
-            setCellProps: () => ({ style: { minWidth: "96px" } })
-          }
-        }
+        ...baseO
       ],
       [renderBlocCell]
     );
@@ -210,12 +238,14 @@ export const BlocTable = memo(
 
     return (
       <MuiThemeProvider theme={theme}>
-        <MUIDataTable
-          columns={columns}
-          data={blocList}
-          title="Books Directory"
-          options={options}
-        />
+        <BlocTableContext.Provider value={blocList}>
+          <MUIDataTable
+            columns={columns}
+            data={blocList}
+            title="Books Directory"
+            options={options}
+          />
+        </BlocTableContext.Provider>
       </MuiThemeProvider>
     );
   }
