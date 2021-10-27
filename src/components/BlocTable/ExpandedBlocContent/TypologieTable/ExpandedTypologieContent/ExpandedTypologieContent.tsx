@@ -3,8 +3,8 @@ import { TableCell, TableRow } from "@material-ui/core";
 import React, { memo } from "react";
 import { useSelector } from "react-redux";
 import { BlocTableState } from "../../../../App";
-import { TypologieDeLots } from "../../../types";
-import { Caracteristiques } from "./Caracteristiques";
+import { TypologieDeLots } from "../../../../types";
+import { Caracteristiques } from "./Caracteristiques/Caracteristiques";
 
 export interface ExpandedTypologieContentProps {
   colSpan: number;

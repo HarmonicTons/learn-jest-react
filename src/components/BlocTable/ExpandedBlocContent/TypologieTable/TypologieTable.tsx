@@ -3,12 +3,12 @@ import { MUIDataTableColumnDef, MUIDataTableOptions } from "mui-datatables";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { BlocTableState } from "../../../App";
-import { ControlCell } from "../../ControlCell";
+import { ControlCell } from "../../ControlCell/ControlCell";
 import { useSwitchRow } from "../../hooks/useSwitchRow";
-import { TypologieDeLots } from "../../types";
-import { EditableCell } from "../../EditableCell";
-import { ExpandedTypologieContent } from "./ExpandedTypologieContent";
-import { StoreConnectedDataTable } from "../../StoreConnectedDataTable";
+import { TypologieDeLots } from "../../../types";
+import { EditableCell } from "../../EditableCell/EditableCell";
+import { ExpandedTypologieContent } from "./ExpandedTypologieContent/ExpandedTypologieContent";
+import { StoreConnectedDataTable } from "../../../StoreConnectedDataTable";
 
 const theme = createTheme({
   overrides: {

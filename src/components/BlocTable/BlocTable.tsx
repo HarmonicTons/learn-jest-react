@@ -1,14 +1,14 @@
 import { createTheme, MuiThemeProvider } from "@material-ui/core";
 import { MUIDataTableColumnDef, MUIDataTableOptions } from "mui-datatables";
 import React, { CSSProperties, memo, useCallback, useMemo } from "react";
-import { Bloc } from "./types";
-import { ControlCell } from "./ControlCell";
-import { HeadLabelWithUnit } from "./HeadLabelWithUnit";
+import { Bloc } from "../types";
+import { ControlCell } from "./ControlCell/ControlCell";
+import { HeadLabelWithUnit } from "./HeadLabelWithUnit/HeadLabelWithUnit";
 import { useSwitchRow } from "./hooks/useSwitchRow";
-import { ExpandedBlocContent } from "./ExpandedBlocContent";
+import { ExpandedBlocContent } from "./ExpandedBlocContent/ExpandedBlocContent";
 import { useSelector } from "react-redux";
-import { EditableCell } from "./EditableCell";
-import { StoreConnectedDataTable } from "./StoreConnectedDataTable";
+import { EditableCell } from "./EditableCell/EditableCell";
+import { StoreConnectedDataTable } from "../StoreConnectedDataTable";
 import { BlocTableState } from "../App";
 
 /**

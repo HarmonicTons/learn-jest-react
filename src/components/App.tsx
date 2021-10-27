@@ -3,8 +3,8 @@ import { set } from "lodash";
 import React from "react";
 import { Provider } from "react-redux";
 import { AnyAction, createStore, Reducer } from "redux";
-import { BlocTable } from "./BlocTable";
-import { Bloc } from "./BlocTable/types";
+import { BlocTable } from "./BlocTable/BlocTable";
+import { Bloc } from "./types";
 
 const createTypologie = (nom: string) => ({
   nom,

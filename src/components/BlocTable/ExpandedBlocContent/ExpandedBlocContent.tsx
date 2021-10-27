@@ -1,8 +1,8 @@
 import { TableCell, TableRow } from "@material-ui/core";
 
 import React, { memo } from "react";
-import { TypologieTable } from "./TypologieTable";
-import { AddTypologie } from "./AddTypologie";
+import { TypologieTable } from "./TypologieTable/TypologieTable";
+import { AddTypologie } from "./AddTypologie/AddTypologie";
 import { useSelector } from "react-redux";
 import { BlocTableState } from "../../App";
 
