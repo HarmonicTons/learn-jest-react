@@ -8,23 +8,23 @@ import { BlocTableState } from "../../App";
 
 export interface ExpandedBlocContentProps {
   colSpan: number;
-  dataIndex: number;
+  blocIndex: number;
 }
 
 const tableCellStyle = { padding: 0 };
 const divStyle = { margin: "5px" };
 
 export const ExpandedBlocContent = memo(
-  ({ colSpan, dataIndex }: ExpandedBlocContentProps): JSX.Element => {
+  ({ colSpan, blocIndex }: ExpandedBlocContentProps): JSX.Element => {
     const hasTypologie = useSelector<BlocTableState, boolean>(
-      state => state.blocList[dataIndex].typologieDeLotsList.length !== 0
+      state => state.blocList[blocIndex].typologieDeLotsList.length !== 0
     );
     return (
       <TableRow>
         <TableCell colSpan={colSpan} style={tableCellStyle}>
-          {hasTypologie && <TypologieTable blocIndex={dataIndex} />}
+          {hasTypologie && <TypologieTable blocIndex={blocIndex} />}
           <div style={divStyle}>
-            <AddTypologie blocIndex={dataIndex} />
+            <AddTypologie blocIndex={blocIndex} />
           </div>
         </TableCell>
       </TableRow>

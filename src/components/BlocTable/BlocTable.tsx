@@ -1,7 +1,10 @@
 import { createTheme, MuiThemeProvider } from "@material-ui/core";
-import { MUIDataTableColumnDef, MUIDataTableOptions } from "mui-datatables";
+import {
+  MUIDataTableColumnDef,
+  MUIDataTableColumnOptions,
+  MUIDataTableOptions
+} from "mui-datatables";
 import React, { CSSProperties, memo, useCallback, useMemo } from "react";
-import { Bloc } from "../types";
 import { HeadLabelWithUnit } from "./HeadLabelWithUnit/HeadLabelWithUnit";
 import { ExpandedBlocContent } from "./ExpandedBlocContent/ExpandedBlocContent";
 import { useDispatch } from "react-redux";
@@ -10,6 +13,9 @@ import { StoreConnectedDataTable } from "../StoreConnectedDataTable";
 import { focusRow } from "../App";
 import { useBlocRowFocused, useBlocRowsExpanded } from "./hooks";
 import { BlocCell } from "./BlocCell/BlocCell";
+import { columnsTemplate } from "./columnsTemplate";
+
+export const focusedRowBackgroundColor = "#f9f2e7";
 
 const theme = createTheme({
   overrides: {
@@ -56,123 +62,43 @@ const renderHeadLabelCreator = ({
 
 const renderExpandableRow = (
   rowData: any[],
-  { dataIndex }: { dataIndex: number }
+  { dataIndex: blocIndex }: { dataIndex: number }
 ) => {
   const colSpan = rowData.length + 1;
-  return <ExpandedBlocContent dataIndex={dataIndex} colSpan={colSpan} />;
+  return <ExpandedBlocContent blocIndex={blocIndex} colSpan={colSpan} />;
 };
 
-const renderBlocCell = (dataIndex: number) => {
-  return <BlocCell blocIndex={dataIndex} />;
+const renderBlocCell = (blocIndex: number) => {
+  return <BlocCell blocIndex={blocIndex} />;
 };
 
-const renderEditableCellCreator = (key: keyof Bloc) => {
+const renderEditableCellCreator = (key: string) => {
   // eslint-disable-next-line react/display-name
-  return (dataIndex: number) => {
-    return <EditableCell row={`${dataIndex}`} column={key} />;
+  return (blocIndex: number) => {
+    return <EditableCell row={`${blocIndex}`} column={key} />;
   };
 };
 
-const setCellProps = () => ({ style: { minWidth: "160px" } });
-const columns: MUIDataTableColumnDef[] = [
-  {
-    name: "nom",
-    label: "Blocs",
-    options: {
-      customBodyRenderLite: renderBlocCell,
-      setCellProps
+const columns: MUIDataTableColumnDef[] = columnsTemplate.map(
+  ({ name, label, isHeader, unit, width }) => {
+    const options: MUIDataTableColumnOptions = {
+      setCellProps: () => ({ style: { minWidth: width ?? "70px" } })
+    };
+    if (isHeader) {
+      options.customBodyRenderLite = renderBlocCell;
+    } else {
+      options.customBodyRenderLite = renderEditableCellCreator(name);
     }
-  },
-  {
-    name: "nombreDeLots",
-    label: "Nombre de lots",
-    options: {
-      customHeadLabelRender: renderHeadLabelCreator({ unit: "€" }),
-      customBodyRenderLite: renderEditableCellCreator("nombreDeLots"),
-      setCellProps
+    if (unit) {
+      options.customHeadLabelRender = renderHeadLabelCreator({ unit });
     }
-  },
-  {
-    name: "pourcentage",
-    label: "Pourcentage",
-    options: {
-      customHeadLabelRender: renderHeadLabelCreator({ unit: "%" }),
-      customBodyRenderLite: renderEditableCellCreator("pourcentage"),
-      setCellProps
-    }
-  },
-  {
-    name: "smabParLogement",
-    label: "SMAB / logement",
-    options: {
-      customHeadLabelRender: renderHeadLabelCreator({ unit: "m²" }),
-      customBodyRenderLite: renderEditableCellCreator("smabParLogement"),
-      setCellProps
-    }
-  },
-  {
-    name: "puTtcLotsPrincipaux",
-    label: "PU TTC lots principaux",
-    options: {
-      customHeadLabelRender: renderHeadLabelCreator({ unit: "€" }),
-      customBodyRenderLite: renderEditableCellCreator("puTtcLotsPrincipaux"),
-      setCellProps
-    }
-  },
-  {
-    name: "puTtcLotsAnnexes",
-    label: "PU TTC lots annexes",
-    options: {
-      customHeadLabelRender: renderHeadLabelCreator({ unit: "€" }),
-      customBodyRenderLite: renderEditableCellCreator("puTtcLotsAnnexes"),
-      setCellProps
-    }
-  },
-  {
-    name: "prixMoyenTtcParM2",
-    label: "Prix moyen TTC/m²",
-    options: {
-      customHeadLabelRender: renderHeadLabelCreator({ unit: "€" }),
-      customBodyRenderLite: renderEditableCellCreator("prixMoyenTtcParM2"),
-      setCellProps
-    }
-  },
-  {
-    name: "caHt",
-    label: "CA HT",
-    options: {
-      customHeadLabelRender: renderHeadLabelCreator({ unit: "K€" }),
-      customBodyRenderLite: renderEditableCellCreator("caHt"),
-      setCellProps
-    }
-  },
-  {
-    name: "tauxTva",
-    label: "Taux TVA",
-    options: {
-      customHeadLabelRender: renderHeadLabelCreator({ unit: "%" }),
-      customBodyRenderLite: renderEditableCellCreator("tauxTva"),
-      setCellProps
-    }
-  },
-  {
-    name: "modeTva",
-    label: "Mode TVA",
-    options: {
-      setCellProps,
-      customBodyRenderLite: renderEditableCellCreator("modeTva")
-    }
-  },
-  {
-    name: "caTtc",
-    label: "CA TTC",
-    options: {
-      customHeadLabelRender: renderHeadLabelCreator({ unit: "K€" }),
-      customBodyRenderLite: renderEditableCellCreator("caTtc"),
-      setCellProps
-    }
+    return {
+      name,
+      label,
+      options
+    };
   }
-];
+);
 
 export const BlocTable = memo(
   (): JSX.Element => {
@@ -181,8 +107,8 @@ export const BlocTable = memo(
     const dispatch = useDispatch();
 
     const setRowFocused = useCallback(
-      (dataIndex: number) => {
-        dispatch(focusRow({ blocIndex: dataIndex }));
+      (blocIndex: number) => {
+        dispatch(focusRow({ blocIndex }));
       },
       [dispatch]
     );
@@ -193,18 +119,18 @@ export const BlocTable = memo(
         expandableRows: true,
         renderExpandableRow,
         rowsExpanded,
-        onCellClick: (_a, { dataIndex }) => {
-          if (rowFocused !== dataIndex) {
-            setRowFocused(dataIndex);
+        onCellClick: (_a, { dataIndex: blocIndex }) => {
+          if (rowFocused !== blocIndex) {
+            setRowFocused(blocIndex);
           }
         },
-        setRowProps: (_a, dataIndex) => {
-          if (dataIndex !== rowFocused) {
+        setRowProps: (_a, blocIndex) => {
+          if (blocIndex !== rowFocused) {
             return {};
           }
           return {
             style: {
-              backgroundColor: "#f9f2e7"
+              backgroundColor: focusedRowBackgroundColor
             }
           };
         }

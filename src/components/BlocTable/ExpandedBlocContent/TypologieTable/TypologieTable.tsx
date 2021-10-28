@@ -1,9 +1,12 @@
 import { createTheme, MuiThemeProvider } from "@material-ui/core";
-import { MUIDataTableColumnDef, MUIDataTableOptions } from "mui-datatables";
+import {
+  MUIDataTableColumnDef,
+  MUIDataTableColumnOptions,
+  MUIDataTableOptions
+} from "mui-datatables";
 import React, { memo, useCallback, useMemo } from "react";
 import { useDispatch } from "react-redux";
 import { focusRow } from "../../../App";
-import { TypologieDeLots } from "../../../types";
 import { EditableCell } from "../../EditableCell/EditableCell";
 import { ExpandedTypologieContent } from "./ExpandedTypologieContent/ExpandedTypologieContent";
 import { StoreConnectedDataTable } from "../../../StoreConnectedDataTable";
@@ -13,6 +16,10 @@ import {
   useTypologieRowsSelected
 } from "./hooks";
 import { TypologieCell } from "./TypologieCell/TypologieCell";
+import { columnsTemplate } from "../../columnsTemplate";
+import { focusedRowBackgroundColor } from "../../BlocTable";
+
+export const selectedRowBackgroundColor = "#f5f6fa";
 
 const theme = createTheme({
   overrides: {
@@ -44,7 +51,7 @@ const theme = createTheme({
     MUIDataTableBodyRow: {
       root: {
         "&.mui-row-selected": {
-          backgroundColor: "#f5f6fa"
+          backgroundColor: selectedRowBackgroundColor
         }
       }
     }
@@ -53,13 +60,16 @@ const theme = createTheme({
 
 const renderExpandableRowCreator = (blocIndex: number) => {
   // eslint-disable-next-line react/display-name
-  return (rowData: any[], { dataIndex }: { dataIndex: number }) => {
+  return (
+    rowData: any[],
+    { dataIndex: typologieIndex }: { dataIndex: number }
+  ) => {
     // length of the sub-row
     const colSpan = rowData.length + 1;
     return (
       <ExpandedTypologieContent
         blocIndex={blocIndex}
-        dataIndex={dataIndex}
+        typologieIndex={typologieIndex}
         colSpan={colSpan}
       />
     );
@@ -68,116 +78,36 @@ const renderExpandableRowCreator = (blocIndex: number) => {
 
 const renderTypologieCellCreator = (blocIndex: number) => {
   // eslint-disable-next-line react/display-name
-  return (dataIndex: number) => {
-    return <TypologieCell blocIndex={blocIndex} typologieIndex={dataIndex} />;
+  return (typologieIndex: number) => {
+    return (
+      <TypologieCell blocIndex={blocIndex} typologieIndex={typologieIndex} />
+    );
   };
 };
 
-const renderEditableCellCreator = (
-  blocIndex: number,
-  key: keyof TypologieDeLots
-) => {
+const renderEditableCellCreator = (blocIndex: number, key: string) => {
   // eslint-disable-next-line react/display-name
-  return (dataIndex: number) => {
-    return <EditableCell row={`${blocIndex}/${dataIndex}`} column={key} />;
+  return (typologieIndex: number) => {
+    return <EditableCell row={`${blocIndex}/${typologieIndex}`} column={key} />;
   };
 };
 
-const setCellProps = () => ({ style: { minWidth: "160px" } });
-const getColumns = (blocIndex: number) => [
-  {
-    name: "nom",
-    options: {
-      customBodyRenderLite: renderTypologieCellCreator(blocIndex),
-      setCellProps
+const getColumns = (blocIndex: number) =>
+  columnsTemplate.map(({ name, label, isHeader, width }) => {
+    const options: MUIDataTableColumnOptions = {
+      setCellProps: () => ({ style: { minWidth: width ?? "70px" } })
+    };
+    if (isHeader) {
+      options.customBodyRenderLite = renderTypologieCellCreator(blocIndex);
+    } else {
+      options.customBodyRenderLite = renderEditableCellCreator(blocIndex, name);
     }
-  },
-  {
-    name: "nombreDeLots",
-    options: {
-      customBodyRenderLite: renderEditableCellCreator(
-        blocIndex,
-        "nombreDeLots"
-      ),
-      setCellProps
-    }
-  },
-  {
-    name: "pourcentage",
-    options: {
-      customBodyRenderLite: renderEditableCellCreator(blocIndex, "pourcentage"),
-      setCellProps
-    }
-  },
-  {
-    name: "smabParLogement",
-    options: {
-      customBodyRenderLite: renderEditableCellCreator(
-        blocIndex,
-        "smabParLogement"
-      ),
-      setCellProps
-    }
-  },
-  {
-    name: "puTtcLotsPrincipaux",
-    options: {
-      customBodyRenderLite: renderEditableCellCreator(
-        blocIndex,
-        "puTtcLotsPrincipaux"
-      ),
-      setCellProps
-    }
-  },
-  {
-    name: "puTtcLotsAnnexes",
-    options: {
-      customBodyRenderLite: renderEditableCellCreator(
-        blocIndex,
-        "puTtcLotsAnnexes"
-      ),
-      setCellProps
-    }
-  },
-  {
-    name: "prixMoyenTtcParM2",
-    options: {
-      customBodyRenderLite: renderEditableCellCreator(
-        blocIndex,
-        "prixMoyenTtcParM2"
-      ),
-      setCellProps
-    }
-  },
-  {
-    name: "caHt",
-    options: {
-      customBodyRenderLite: renderEditableCellCreator(blocIndex, "caHt"),
-      setCellProps
-    }
-  },
-  {
-    name: "tauxTva",
-    options: {
-      customBodyRenderLite: renderEditableCellCreator(blocIndex, "tauxTva"),
-      setCellProps
-    }
-  },
-  {
-    name: "modeTva",
-    options: {
-      customBodyRenderLite: renderEditableCellCreator(blocIndex, "modeTva"),
-      setCellProps
-    }
-  },
-  {
-    name: "caTtc",
-    options: {
-      customBodyRenderLite: renderEditableCellCreator(blocIndex, "caTtc"),
-      setCellProps
-    }
-  }
-];
+    return {
+      name,
+      label,
+      options
+    };
+  });
 
 export interface TypologieTableProps {
   blocIndex: number;
@@ -191,8 +121,8 @@ export const TypologieTable = memo(
     const dispatch = useDispatch();
 
     const setRowFocused = useCallback(
-      (dataIndex: number) => {
-        dispatch(focusRow({ blocIndex, typologieIndex: dataIndex }));
+      (typologieIndex: number) => {
+        dispatch(focusRow({ blocIndex, typologieIndex }));
       },
       [blocIndex, dispatch]
     );
@@ -211,18 +141,18 @@ export const TypologieTable = memo(
         selectableRows: "multiple",
         rowsSelected,
         elevation: 0,
-        onCellClick: (_a, { dataIndex }) => {
-          if (rowFocused !== dataIndex) {
-            setRowFocused(dataIndex);
+        onCellClick: (_a, { dataIndex: typologieIndex }) => {
+          if (rowFocused !== typologieIndex) {
+            setRowFocused(typologieIndex);
           }
         },
-        setRowProps: (_a, dataIndex) => {
-          if (dataIndex !== rowFocused) {
+        setRowProps: (_a, typologieIndex) => {
+          if (typologieIndex !== rowFocused) {
             return {};
           }
           return {
             style: {
-              backgroundColor: "#f9f2e7"
+              backgroundColor: focusedRowBackgroundColor
             }
           };
         }

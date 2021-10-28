@@ -1,33 +1,56 @@
 import { TableCell, TableRow } from "@material-ui/core";
+import { CSSProperties } from "@material-ui/core/styles/withStyles";
 
 import React, { memo } from "react";
-import { useSelector } from "react-redux";
-import { BlocTableState } from "../../../../App";
+import { useDispatch, useSelector } from "react-redux";
+import { BlocTableState, focusRow } from "../../../../App";
 import { TypologieDeLots } from "../../../../types";
+import { focusedRowBackgroundColor } from "../../../BlocTable";
+import { selectedRowBackgroundColor } from "../TypologieTable";
 import { Caracteristiques } from "./Caracteristiques/Caracteristiques";
 
 export interface ExpandedTypologieContentProps {
   colSpan: number;
   blocIndex: number;
-  dataIndex: number;
+  typologieIndex: number;
 }
 
 export const ExpandedTypologieContent = memo(
   ({
     colSpan,
     blocIndex,
-    dataIndex
+    typologieIndex
   }: ExpandedTypologieContentProps): JSX.Element => {
     const caracteristiques = useSelector<
       BlocTableState,
       TypologieDeLots["caracteristiques"]
     >(
       state =>
-        state.blocList[blocIndex].typologieDeLotsList[dataIndex]
+        state.blocList[blocIndex].typologieDeLotsList[typologieIndex]
           .caracteristiques
     );
+    const isSelected = useSelector<BlocTableState, boolean>(state =>
+      state.rowsSelected.includes(`${blocIndex}/${typologieIndex}`)
+    );
+    const isFocused = useSelector<BlocTableState, boolean>(
+      state => state.rowFocused === `${blocIndex}/${typologieIndex}`
+    );
+
+    const dispatch = useDispatch();
+
+    const style: CSSProperties = {};
+    if (isSelected) {
+      style.backgroundColor = selectedRowBackgroundColor;
+    }
+    if (isFocused) {
+      style.backgroundColor = focusedRowBackgroundColor;
+    }
+
+    const handleClick = () => {
+      dispatch(focusRow({ blocIndex, typologieIndex }));
+    };
     return (
-      <TableRow>
+      <TableRow style={style} onClick={handleClick}>
         <TableCell colSpan={colSpan}>
           {caracteristiques && (
             <Caracteristiques
