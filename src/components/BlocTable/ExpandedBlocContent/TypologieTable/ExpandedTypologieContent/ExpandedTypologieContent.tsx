@@ -3,7 +3,7 @@ import { CSSProperties } from "@material-ui/core/styles/withStyles";
 
 import React, { memo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { BlocTableState, focusRow } from "../../../../App";
+import { BlocTableState, focusRow } from "../../../../blocTableReducer";
 import { TypologieDeLots } from "../../../../types";
 import { focusedRowBackgroundColor } from "../../../BlocTable";
 import { selectedRowBackgroundColor } from "../TypologieTable";

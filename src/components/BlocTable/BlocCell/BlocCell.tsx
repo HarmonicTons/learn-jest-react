@@ -1,7 +1,7 @@
 import React, { memo, useCallback } from "react";
 import { ControlCell } from "../ControlCell/ControlCell";
 import { useDispatch, useSelector } from "react-redux";
-import { BlocTableState, expandRow } from "../../App";
+import { BlocTableState, expandRow } from "../../blocTableReducer";
 import { useBlocRowsExpanded } from "../hooks";
 
 export const BlocCell = memo(({ blocIndex }: { blocIndex: number }) => {

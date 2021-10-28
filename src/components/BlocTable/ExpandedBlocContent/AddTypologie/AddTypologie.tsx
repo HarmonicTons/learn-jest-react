@@ -1,7 +1,7 @@
 import { FormControl, InputLabel, MenuItem, Select } from "@material-ui/core";
 import React, { ChangeEvent, memo, useCallback, useMemo } from "react";
 import { useDispatch } from "react-redux";
-import { addTypologie } from "../../../App";
+import { addTypologie } from "../../../blocTableReducer";
 
 export interface AddTypologieProps {
   blocIndex: number;

@@ -4,7 +4,7 @@ import React, { memo } from "react";
 import { TypologieTable } from "./TypologieTable/TypologieTable";
 import { AddTypologie } from "./AddTypologie/AddTypologie";
 import { useSelector } from "react-redux";
-import { BlocTableState } from "../../App";
+import { BlocTableState } from "../../blocTableReducer";
 
 export interface ExpandedBlocContentProps {
   colSpan: number;

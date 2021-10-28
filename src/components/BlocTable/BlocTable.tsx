@@ -10,7 +10,7 @@ import { ExpandedBlocContent } from "./ExpandedBlocContent/ExpandedBlocContent";
 import { useDispatch } from "react-redux";
 import { EditableCell } from "./EditableCell/EditableCell";
 import { StoreConnectedDataTable } from "../StoreConnectedDataTable";
-import { focusRow } from "../App";
+import { focusRow } from "../blocTableReducer";
 import { useBlocRowFocused, useBlocRowsExpanded } from "./hooks";
 import { BlocCell } from "./BlocCell/BlocCell";
 import { columnsTemplate } from "./columnsTemplate";
@@ -81,8 +81,9 @@ const renderEditableCellCreator = (key: string) => {
 
 const columns: MUIDataTableColumnDef[] = columnsTemplate.map(
   ({ name, label, isHeader, unit, width }) => {
+    const w = width ?? "70px";
     const options: MUIDataTableColumnOptions = {
-      setCellProps: () => ({ style: { minWidth: width ?? "70px" } })
+      setCellProps: () => ({ style: { minWidth: w, width: w, maxWidth: w } })
     };
     if (isHeader) {
       options.customBodyRenderLite = renderBlocCell;

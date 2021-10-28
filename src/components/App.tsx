@@ -120,8 +120,8 @@ const store = createStore(
     rowsExpanded: ["0", "0/1", "2"],
     rowFocused: undefined,
     rowsSelected: ["0/0", "0/1"]
-  }
-  //composeWithDevTools()
+  },
+  composeWithDevTools()
 );
 
 export const App = (): JSX.Element => {

@@ -1,7 +1,7 @@
 import React, { ChangeEvent, memo, useCallback, useMemo } from "react";
 import { TextField } from "@material-ui/core";
 import { useDispatch, useSelector } from "react-redux";
-import { BlocTableState, updateBlocList } from "../../App";
+import { BlocTableState, updateBlocList } from "../../blocTableReducer";
 import { get } from "lodash";
 
 const getPathFromRowAndColumn = (row: string, column: string): string => {

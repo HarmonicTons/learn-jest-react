@@ -1,6 +1,10 @@
 import React, { memo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { BlocTableState, expandRow, selectRow } from "../../../../App";
+import {
+  BlocTableState,
+  expandRow,
+  selectRow
+} from "../../../../blocTableReducer";
 import { ControlCell } from "../../../ControlCell/ControlCell";
 import { useTypologieRowsExpanded, useTypologieRowsSelected } from "../hooks";
 

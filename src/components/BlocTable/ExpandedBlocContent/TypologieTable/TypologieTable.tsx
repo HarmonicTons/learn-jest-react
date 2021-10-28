@@ -6,7 +6,7 @@ import {
 } from "mui-datatables";
 import React, { memo, useCallback, useMemo } from "react";
 import { useDispatch } from "react-redux";
-import { focusRow } from "../../../App";
+import { focusRow } from "../../../blocTableReducer";
 import { EditableCell } from "../../EditableCell/EditableCell";
 import { ExpandedTypologieContent } from "./ExpandedTypologieContent/ExpandedTypologieContent";
 import { StoreConnectedDataTable } from "../../../StoreConnectedDataTable";
@@ -94,8 +94,9 @@ const renderEditableCellCreator = (blocIndex: number, key: string) => {
 
 const getColumns = (blocIndex: number) =>
   columnsTemplate.map(({ name, label, isHeader, width }) => {
+    const w = width ?? "70px";
     const options: MUIDataTableColumnOptions = {
-      setCellProps: () => ({ style: { minWidth: width ?? "70px" } })
+      setCellProps: () => ({ style: { minWidth: w, width: w, maxWidth: w } })
     };
     if (isHeader) {
       options.customBodyRenderLite = renderTypologieCellCreator(blocIndex);

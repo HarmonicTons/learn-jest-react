@@ -57,7 +57,10 @@ export const updateBlocList = (payload: {
   type: ACTIONS.UPDATE_BLOCLIST,
   payload
 });
-export const addTypologie = (payload: RowIdParts): AnyAction => ({
+export const addTypologie = (payload: {
+  blocIndex: number;
+  nom: string;
+}): AnyAction => ({
   type: ACTIONS.ADD_TYPOLOGIE,
   payload
 });

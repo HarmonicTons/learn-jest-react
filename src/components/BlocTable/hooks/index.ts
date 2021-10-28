@@ -1,5 +1,5 @@
 import { useSelector } from "react-redux";
-import { BlocTableState } from "../../App";
+import { BlocTableState } from "../../blocTableReducer";
 import { isEqual } from "lodash";
 
 export const useBlocRowsExpanded = (): number[] =>
