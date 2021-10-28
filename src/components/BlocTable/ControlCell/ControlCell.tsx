@@ -31,7 +31,7 @@ export const ControlCell = memo(
   }: ControlCellProps): JSX.Element => {
     return (
       <span>
-        {isSelectable && <Checkbox onChange={onSelect} value={isSelected} />}
+        {isSelectable && <Checkbox onChange={onSelect} checked={isSelected} />}
         {isExpandable && (
           <IconButton onClick={onExpand} style={IconButtonStyle}>
             {isExpanded ? <ExpandLess /> : <ExpandMore />}

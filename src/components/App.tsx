@@ -131,14 +131,35 @@ const blocList: Bloc[] = [
   }
 ];
 
+// STATE
 export interface BlocTableState {
   blocList: Bloc[];
+  rowsSelected: string[];
+  rowsExpanded: string[];
+  rowFocused?: string;
 }
-const initialState: BlocTableState = { blocList };
+const initialState: BlocTableState = {
+  blocList,
+  rowsExpanded: ["0", "0/1", "2"],
+  rowFocused: undefined,
+  rowsSelected: ["0/0", "0/1"]
+};
+
+// ACTIONS TYPES
 const ACTIONS = {
   UPDATE_BLOCLIST: "UPDATE_BLOCLIST",
-  ADD_TYPOLOGIE: "ADD_TYPOLOGIE"
+  ADD_TYPOLOGIE: "ADD_TYPOLOGIE",
+  EXPAND_ROW: "EXPAND_ROW",
+  SELECT_ROW: "SELECT_ROW",
+  FOCUS_ROW: "FOCUS_ROW"
 };
+
+interface RowIdParts {
+  blocIndex: number;
+  typologieIndex?: number;
+}
+
+// ACTIONS CREATORS
 export const updateBlocList = (payload: {
   path: string;
   value: any;
@@ -146,13 +167,29 @@ export const updateBlocList = (payload: {
   type: ACTIONS.UPDATE_BLOCLIST,
   payload
 });
-export const addTypologie = (payload: {
-  blocIndex: number;
-  nom: string;
-}): AnyAction => ({
+export const addTypologie = (payload: RowIdParts): AnyAction => ({
   type: ACTIONS.ADD_TYPOLOGIE,
   payload
 });
+export const expandRow = (payload: RowIdParts): AnyAction => ({
+  type: ACTIONS.EXPAND_ROW,
+  payload
+});
+export const selectRow = (payload: RowIdParts): AnyAction => ({
+  type: ACTIONS.SELECT_ROW,
+  payload
+});
+export const focusRow = (payload: RowIdParts): AnyAction => ({
+  type: ACTIONS.FOCUS_ROW,
+  payload
+});
+
+const getRowId = ({ blocIndex, typologieIndex }: RowIdParts) =>
+  typologieIndex === undefined
+    ? `${blocIndex}`
+    : `${blocIndex}/${typologieIndex}`;
+
+// REDUCER
 const reducer: Reducer<BlocTableState> = (state, action) => {
   if (!state) {
     return initialState;
@@ -171,6 +208,37 @@ const reducer: Reducer<BlocTableState> = (state, action) => {
         draft.blocList[blocIndex].typologieDeLotsList.push(
           createTypologie(nom)
         );
+      });
+      return newState;
+    }
+    case ACTIONS.EXPAND_ROW: {
+      const newState = produce(state, draft => {
+        const rowId = getRowId(action.payload);
+        const index = draft.rowsExpanded.findIndex(row => row === rowId);
+        if (index >= 0) {
+          draft.rowsExpanded.splice(index, 1);
+        } else {
+          draft.rowsExpanded.push(rowId);
+        }
+      });
+      return newState;
+    }
+    case ACTIONS.SELECT_ROW: {
+      const newState = produce(state, draft => {
+        const rowId = getRowId(action.payload);
+        const index = draft.rowsSelected.findIndex(row => row === rowId);
+        if (index >= 0) {
+          draft.rowsSelected.splice(index, 1);
+        } else {
+          draft.rowsSelected.push(rowId);
+        }
+      });
+      return newState;
+    }
+    case ACTIONS.FOCUS_ROW: {
+      const newState = produce(state, draft => {
+        const rowId = getRowId(action.payload);
+        draft.rowFocused = rowId;
       });
       return newState;
     }

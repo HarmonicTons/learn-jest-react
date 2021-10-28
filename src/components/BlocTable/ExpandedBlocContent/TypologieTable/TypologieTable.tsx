@@ -1,14 +1,18 @@
 import { createTheme, MuiThemeProvider } from "@material-ui/core";
 import { MUIDataTableColumnDef, MUIDataTableOptions } from "mui-datatables";
-import React, { memo, useCallback, useMemo, useState } from "react";
-import { useSelector } from "react-redux";
-import { BlocTableState } from "../../../App";
-import { ControlCell } from "../../ControlCell/ControlCell";
-import { useSwitchRow } from "../../hooks/useSwitchRow";
+import React, { memo, useCallback, useMemo } from "react";
+import { useDispatch } from "react-redux";
+import { focusRow } from "../../../App";
 import { TypologieDeLots } from "../../../types";
 import { EditableCell } from "../../EditableCell/EditableCell";
 import { ExpandedTypologieContent } from "./ExpandedTypologieContent/ExpandedTypologieContent";
 import { StoreConnectedDataTable } from "../../../StoreConnectedDataTable";
+import {
+  useTypologieRowFocused,
+  useTypologieRowsExpanded,
+  useTypologieRowsSelected
+} from "./hooks";
+import { TypologieCell } from "./TypologieCell/TypologieCell";
 
 const theme = createTheme({
   overrides: {
@@ -47,204 +51,162 @@ const theme = createTheme({
   }
 });
 
-const cellProps = { style: { minWidth: "160px" } };
-const setCellProps = () => cellProps;
+const renderExpandableRowCreator = (blocIndex: number) => {
+  // eslint-disable-next-line react/display-name
+  return (rowData: any[], { dataIndex }: { dataIndex: number }) => {
+    // length of the sub-row
+    const colSpan = rowData.length + 1;
+    return (
+      <ExpandedTypologieContent
+        blocIndex={blocIndex}
+        dataIndex={dataIndex}
+        colSpan={colSpan}
+      />
+    );
+  };
+};
+
+const renderTypologieCellCreator = (blocIndex: number) => {
+  // eslint-disable-next-line react/display-name
+  return (dataIndex: number) => {
+    return <TypologieCell blocIndex={blocIndex} typologieIndex={dataIndex} />;
+  };
+};
+
+const renderEditableCellCreator = (
+  blocIndex: number,
+  key: keyof TypologieDeLots
+) => {
+  // eslint-disable-next-line react/display-name
+  return (dataIndex: number) => {
+    return <EditableCell row={`${blocIndex}/${dataIndex}`} column={key} />;
+  };
+};
+
+const setCellProps = () => ({ style: { minWidth: "160px" } });
+const getColumns = (blocIndex: number) => [
+  {
+    name: "nom",
+    options: {
+      customBodyRenderLite: renderTypologieCellCreator(blocIndex),
+      setCellProps
+    }
+  },
+  {
+    name: "nombreDeLots",
+    options: {
+      customBodyRenderLite: renderEditableCellCreator(
+        blocIndex,
+        "nombreDeLots"
+      ),
+      setCellProps
+    }
+  },
+  {
+    name: "pourcentage",
+    options: {
+      customBodyRenderLite: renderEditableCellCreator(blocIndex, "pourcentage"),
+      setCellProps
+    }
+  },
+  {
+    name: "smabParLogement",
+    options: {
+      customBodyRenderLite: renderEditableCellCreator(
+        blocIndex,
+        "smabParLogement"
+      ),
+      setCellProps
+    }
+  },
+  {
+    name: "puTtcLotsPrincipaux",
+    options: {
+      customBodyRenderLite: renderEditableCellCreator(
+        blocIndex,
+        "puTtcLotsPrincipaux"
+      ),
+      setCellProps
+    }
+  },
+  {
+    name: "puTtcLotsAnnexes",
+    options: {
+      customBodyRenderLite: renderEditableCellCreator(
+        blocIndex,
+        "puTtcLotsAnnexes"
+      ),
+      setCellProps
+    }
+  },
+  {
+    name: "prixMoyenTtcParM2",
+    options: {
+      customBodyRenderLite: renderEditableCellCreator(
+        blocIndex,
+        "prixMoyenTtcParM2"
+      ),
+      setCellProps
+    }
+  },
+  {
+    name: "caHt",
+    options: {
+      customBodyRenderLite: renderEditableCellCreator(blocIndex, "caHt"),
+      setCellProps
+    }
+  },
+  {
+    name: "tauxTva",
+    options: {
+      customBodyRenderLite: renderEditableCellCreator(blocIndex, "tauxTva"),
+      setCellProps
+    }
+  },
+  {
+    name: "modeTva",
+    options: {
+      customBodyRenderLite: renderEditableCellCreator(blocIndex, "modeTva"),
+      setCellProps
+    }
+  },
+  {
+    name: "caTtc",
+    options: {
+      customBodyRenderLite: renderEditableCellCreator(blocIndex, "caTtc"),
+      setCellProps
+    }
+  }
+];
 
 export interface TypologieTableProps {
   blocIndex: number;
 }
 
-const TypologieCell = memo(
-  ({
-    blocIndex,
-    dataIndex,
-    rowsExpanded,
-    switchRowExpanded,
-    rowsSelected,
-    switchRowSelected
-  }: any) => {
-    const handleExpand = useCallback(() => switchRowExpanded(dataIndex), [
-      dataIndex,
-      switchRowExpanded
-    ]);
-    const handleSelect = useCallback(() => switchRowSelected(dataIndex), [
-      dataIndex,
-      switchRowSelected
-    ]);
-    const nom = useSelector<BlocTableState, string>(
-      state => state.blocList[blocIndex].typologieDeLotsList[dataIndex].nom
-    );
-    const hasCaracteristiques = useSelector<BlocTableState, boolean>(state =>
-      Boolean(
-        state.blocList[blocIndex].typologieDeLotsList[dataIndex]
-          .caracteristiques
-      )
-    );
-    return (
-      <ControlCell
-        value={nom}
-        isExpandable={hasCaracteristiques}
-        isExpanded={rowsExpanded?.includes(dataIndex) ?? false}
-        onExpand={handleExpand}
-        isSelectable={true}
-        isSelected={rowsSelected?.includes(dataIndex) ?? false}
-        onSelect={handleSelect}
-      />
-    );
-  }
-);
-TypologieCell.displayName = "TypologieCell";
-
 export const TypologieTable = memo(
   ({ blocIndex }: TypologieTableProps): JSX.Element => {
-    const [rowsExpanded, switchRowExpanded] = useSwitchRow();
-    const [rowsSelected, switchRowSelected] = useSwitchRow();
-    const [rowFocused, setRowFocused] = useState<number | undefined>();
+    const rowsExpanded = useTypologieRowsExpanded(blocIndex);
+    const rowsSelected = useTypologieRowsSelected(blocIndex);
+    const rowFocused = useTypologieRowFocused(blocIndex);
+    const dispatch = useDispatch();
 
-    const renderExpandableRow = useCallback(
-      (rowData: any[], { dataIndex }: { dataIndex: number }) => {
-        // length of the sub-row
-        const colSpan = rowData.length + 1;
-        return (
-          <ExpandedTypologieContent
-            blocIndex={blocIndex}
-            dataIndex={dataIndex}
-            colSpan={colSpan}
-          />
-        );
-      },
-      [blocIndex]
-    );
-
-    const renderTypologieCell = useCallback(
+    const setRowFocused = useCallback(
       (dataIndex: number) => {
-        return (
-          <TypologieCell
-            blocIndex={blocIndex}
-            dataIndex={dataIndex}
-            rowsExpanded={rowsExpanded}
-            switchRowExpanded={switchRowExpanded}
-            rowsSelected={rowsSelected}
-            switchRowSelected={switchRowSelected}
-          />
-        );
+        dispatch(focusRow({ blocIndex, typologieIndex: dataIndex }));
       },
-      [
-        blocIndex,
-        rowsExpanded,
-        switchRowExpanded,
-        rowsSelected,
-        switchRowSelected
-      ]
-    );
-
-    const renderEditableCellCreator = useCallback(
-      (key: keyof TypologieDeLots) => {
-        // eslint-disable-next-line react/display-name
-        return (dataIndex: number) => {
-          return (
-            <EditableCell
-              path={`${blocIndex}.typologieDeLotsList.${dataIndex}.${key}`}
-              isEditing={rowFocused === dataIndex}
-            />
-          );
-        };
-      },
-      [rowFocused, blocIndex]
+      [blocIndex, dispatch]
     );
 
     const columns: MUIDataTableColumnDef[] = useMemo(
-      () => [
-        {
-          name: "nom",
-          options: {
-            customBodyRenderLite: renderTypologieCell,
-            setCellProps
-          }
-        },
-        {
-          name: "nombreDeLots",
-          options: {
-            customBodyRenderLite: renderEditableCellCreator("nombreDeLots"),
-            setCellProps
-          }
-        },
-        {
-          name: "pourcentage",
-          options: {
-            customBodyRenderLite: renderEditableCellCreator("pourcentage"),
-            setCellProps
-          }
-        },
-        {
-          name: "smabParLogement",
-          options: {
-            customBodyRenderLite: renderEditableCellCreator("smabParLogement"),
-            setCellProps
-          }
-        },
-        {
-          name: "puTtcLotsPrincipaux",
-          options: {
-            customBodyRenderLite: renderEditableCellCreator(
-              "puTtcLotsPrincipaux"
-            ),
-            setCellProps
-          }
-        },
-        {
-          name: "puTtcLotsAnnexes",
-          options: {
-            customBodyRenderLite: renderEditableCellCreator("puTtcLotsAnnexes"),
-            setCellProps
-          }
-        },
-        {
-          name: "prixMoyenTtcParM2",
-          options: {
-            customBodyRenderLite: renderEditableCellCreator(
-              "prixMoyenTtcParM2"
-            ),
-            setCellProps
-          }
-        },
-        {
-          name: "caHt",
-          options: {
-            customBodyRenderLite: renderEditableCellCreator("caHt"),
-            setCellProps
-          }
-        },
-        {
-          name: "tauxTva",
-          options: {
-            customBodyRenderLite: renderEditableCellCreator("tauxTva"),
-            setCellProps
-          }
-        },
-        {
-          name: "modeTva",
-          options: {
-            customBodyRenderLite: renderEditableCellCreator("modeTva"),
-            setCellProps
-          }
-        },
-        {
-          name: "caTtc",
-          options: {
-            customBodyRenderLite: renderEditableCellCreator("caTtc"),
-            setCellProps
-          }
-        }
-      ],
-      [renderTypologieCell, renderEditableCellCreator]
+      () => getColumns(blocIndex),
+      [blocIndex]
     );
 
     const options: MUIDataTableOptions = useMemo(
       () => ({
         responsive: "standard",
         expandableRows: true,
-        renderExpandableRow,
+        renderExpandableRow: renderExpandableRowCreator(blocIndex),
         rowsExpanded,
         selectableRows: "multiple",
         rowsSelected,
@@ -265,13 +227,7 @@ export const TypologieTable = memo(
           };
         }
       }),
-      [
-        renderExpandableRow,
-        rowsExpanded,
-        rowsSelected,
-        rowFocused,
-        setRowFocused
-      ]
+      [rowsExpanded, rowsSelected, rowFocused, setRowFocused, blocIndex]
     );
 
     return (
