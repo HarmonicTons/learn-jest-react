@@ -3,12 +3,13 @@ import { createUseStyles } from "react-jss";
 
 type StylesProps = {
   size: number;
+  maxSize: number;
   color: string;
 };
 const useStyles = createUseStyles({
-  arrow: ({ size, color }: StylesProps) => {
-    const l = size - Math.ceil(size / 10) * 2;
-    const h = Math.ceil(size / 10);
+  arrow: ({ size, maxSize, color }: StylesProps) => {
+    const l = size - Math.ceil(size / 8) * 2;
+    const h = Math.ceil(maxSize / 8);
     const a = h * 2;
     const b = h * 1.5;
     return {
@@ -46,7 +47,11 @@ export const Arrow = ({
 }: ArrowProps): JSX.Element => {
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
-  const classes = useStyles({ size: (width * percentWidth) / 100, color });
+  const classes = useStyles({
+    size: (width * percentWidth) / 100,
+    maxSize: width,
+    color
+  });
 
   useLayoutEffect(() => {
     if (ref.current) {

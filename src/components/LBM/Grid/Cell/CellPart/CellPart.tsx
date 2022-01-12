@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useCallback, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { Arrow } from "./Arrow/Arrow";
+import { Dot } from "./Dot/Dot";
 
 export enum Direction {
   NW = "NW",
@@ -23,11 +24,19 @@ const useStyles = createUseStyles({
     height: "100%",
     border: "1px dotted black"
   },
+  dotContainer: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    height: "100%"
+  },
   arrowContainer: {
     display: "flex",
     alignItems: "center",
     width: "100%",
     height: "100%",
+    paddingLeft: "15%",
     transform: ({ direction }: StylesProps) => {
       let deg = 0;
       switch (direction) {
@@ -56,7 +65,13 @@ const useStyles = createUseStyles({
           deg = 45;
           break;
       }
-      return `rotate(${deg}deg)`;
+      const shouldTranslate = [
+        Direction.NW,
+        Direction.NE,
+        Direction.SW,
+        Direction.SE
+      ].includes(direction);
+      return `rotate(${deg}deg)${shouldTranslate ? " translate(-15%, 0)" : ""}`;
     }
   }
 });
@@ -71,10 +86,33 @@ export const CellPart = ({
   arrowSize
 }: CellPartProps): JSX.Element => {
   const classes = useStyles({ direction });
+  const [isHovered, setIsHovered] = useState(false);
+  const handleMouseEnter = useCallback(() => {
+    setIsHovered(true);
+  }, []);
+  const handleMouseLeave = useCallback(() => {
+    setIsHovered(false);
+  }, []);
   return (
-    <div className={classes.cellPart}>
-      <div className={classes.arrowContainer}>
-        <Arrow percentWidth={arrowSize} />
+    <div
+      className={classes.cellPart}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <div
+        className={
+          direction === "C" ? classes.dotContainer : classes.arrowContainer
+        }
+      >
+        {direction === "C" && (
+          <Dot
+            percentWidth={arrowSize / 2}
+            color={isHovered ? "red" : "black"}
+          />
+        )}
+        {direction !== "C" && (
+          <Arrow percentWidth={arrowSize} color={isHovered ? "red" : "black"} />
+        )}
       </div>
     </div>
   );
