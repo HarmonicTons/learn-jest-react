@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 
 type StylesProps = {
@@ -10,7 +10,7 @@ const useStyles = createUseStyles({
     const l = size - Math.ceil(size / 10) * 2;
     const h = Math.ceil(size / 10);
     const a = h * 2;
-    const b = h;
+    const b = h * 1.5;
     return {
       backgroundColor: color,
       width: `${l}px`,
@@ -36,11 +36,26 @@ const useStyles = createUseStyles({
 });
 
 export type ArrowProps = {
-  size: number;
+  percentWidth: number;
   color?: string;
 };
 
-export const Arrow = ({ size, color = "black" }: ArrowProps): JSX.Element => {
-  const classes = useStyles({ size, color });
-  return <div className={classes.arrow}></div>;
+export const Arrow = ({
+  percentWidth,
+  color = "black"
+}: ArrowProps): JSX.Element => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(0);
+  const classes = useStyles({ size: (width * percentWidth) / 100, color });
+
+  useLayoutEffect(() => {
+    if (ref.current) {
+      setWidth(ref.current.offsetWidth);
+    }
+  }, []);
+  return (
+    <div style={{ width: "100%" }} ref={ref}>
+      <div className={classes.arrow}></div>
+    </div>
+  );
 };
