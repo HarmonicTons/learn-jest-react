@@ -1,6 +1,6 @@
 import React from "react";
 import { createUseStyles } from "react-jss";
-import { Distributions } from "../../business/distributions";
+import { Distributions } from "../../business/cell";
 import { Cell } from "../Cell/Cell";
 
 type StylesProps = {

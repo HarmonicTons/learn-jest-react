@@ -8,7 +8,7 @@ import {
   calculateUy,
   Distributions,
   getEquilibriumDistribution,
-} from "./business/distributions";
+} from "./business/cell";
 
 const toFixedNumber = (n: number): number => Number(n.toFixed(3));
 
@@ -25,15 +25,15 @@ export const ControllableCell = (): JSX.Element => {
 
   const setEquil = useCallback((rho, ux, uy) => {
     const {
-      C: n0,
-      E: nE,
-      N: nN,
-      NE: nNE,
-      NW: nNW,
-      S: nS,
-      SE: nSE,
-      SW: nSW,
-      W: nW,
+      n0: n0,
+      nE: nE,
+      nN: nN,
+      nNE: nNE,
+      nNW: nNW,
+      nS: nS,
+      nSE: nSE,
+      nSW: nSW,
+      nW: nW,
     } = getEquilibriumDistribution(rho, ux, uy);
     setNW(toFixedNumber(nNW));
     setN(toFixedNumber(nN));
@@ -52,28 +52,41 @@ export const ControllableCell = (): JSX.Element => {
 
   const distributions = useMemo<Distributions>(
     () => ({
-      C: n0,
-      E: nE,
-      N: nN,
-      NE: nNE,
-      NW: nNW,
-      S: nS,
-      SE: nSE,
-      SW: nSW,
-      W: nW,
+      n0: n0,
+      nE: nE,
+      nN: nN,
+      nNE: nNE,
+      nNW: nNW,
+      nS: nS,
+      nSE: nSE,
+      nSW: nSW,
+      nW: nW,
     }),
     [n0, nE, nN, nNE, nNW, nS, nSE, nSW, nW],
   );
 
-  const rho = useMemo(() => calculateRho(distributions), [distributions]);
+  const rho = useMemo(
+    () => calculateRho(nNW, nN, nNE, nW, n0, nE, nSW, nS, nSE),
+    [nNW, nN, nNE, nW, n0, nE, nSW, nS, nSE],
+  );
 
-  const ux = useMemo(() => calculateUx(distributions, rho), [
-    distributions,
+  const ux = useMemo(() => calculateUx(nNW, nNE, nW, nE, nSW, nSE, rho), [
+    nNW,
+    nNE,
+    nW,
+    nE,
+    nSW,
+    nSE,
     rho,
   ]);
 
-  const uy = useMemo(() => calculateUy(distributions, rho), [
-    distributions,
+  const uy = useMemo(() => calculateUy(nNW, nN, nNE, nSW, nS, nSE, rho), [
+    nNW,
+    nN,
+    nNE,
+    nSW,
+    nS,
+    nSE,
     rho,
   ]);
 

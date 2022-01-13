@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
 import { createUseStyles } from "react-jss";
-import { Direction, Distributions } from "../../business/distributions";
+import { Direction, Distributions } from "../../business/cell";
 import { CellPart } from "./CellPart/CellPart";
 
 const useStyles = createUseStyles({
@@ -32,39 +32,39 @@ export const Cell = ({
     <div className={classes.cell}>
       <CellPart
         direction={Direction.NW}
-        arrowSize={getArrowSize(distributions.NW)}
+        arrowSize={getArrowSize(distributions.nNW)}
       />
       <CellPart
         direction={Direction.N}
-        arrowSize={getArrowSize(distributions.N)}
+        arrowSize={getArrowSize(distributions.nN)}
       />
       <CellPart
         direction={Direction.NE}
-        arrowSize={getArrowSize(distributions.NE)}
+        arrowSize={getArrowSize(distributions.nNE)}
       />
       <CellPart
         direction={Direction.W}
-        arrowSize={getArrowSize(distributions.W)}
+        arrowSize={getArrowSize(distributions.nW)}
       />
       <CellPart
         direction={Direction.C}
-        arrowSize={getArrowSize(distributions.C)}
+        arrowSize={getArrowSize(distributions.n0)}
       />
       <CellPart
         direction={Direction.E}
-        arrowSize={getArrowSize(distributions.E)}
+        arrowSize={getArrowSize(distributions.nE)}
       />
       <CellPart
         direction={Direction.SW}
-        arrowSize={getArrowSize(distributions.SW)}
+        arrowSize={getArrowSize(distributions.nSW)}
       />
       <CellPart
         direction={Direction.S}
-        arrowSize={getArrowSize(distributions.S)}
+        arrowSize={getArrowSize(distributions.nS)}
       />
       <CellPart
         direction={Direction.SE}
-        arrowSize={getArrowSize(distributions.SE)}
+        arrowSize={getArrowSize(distributions.nSE)}
       />
     </div>
   );
