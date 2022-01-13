@@ -3,7 +3,7 @@ import React from "react";
 import { ComponentStory, ComponentMeta } from "@storybook/react";
 
 import { Grid } from "./Grid";
-import { Distributions } from "./Cell/Cell";
+import { Distributions } from "../Cell/Cell";
 
 export default {
   component: Grid,

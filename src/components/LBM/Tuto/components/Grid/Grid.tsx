@@ -1,6 +1,6 @@
 import React from "react";
 import { createUseStyles } from "react-jss";
-import { Cell, Distributions } from "./Cell/Cell";
+import { Cell, Distributions } from "../Cell/Cell";
 
 type StylesProps = {
   columns: number;
