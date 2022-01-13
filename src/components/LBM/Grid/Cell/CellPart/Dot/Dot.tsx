@@ -1,19 +1,19 @@
-import React, { useLayoutEffect, useRef, useState } from "react";
+import React from "react";
 import { createUseStyles } from "react-jss";
 
 type StylesProps = {
-  percentWidth: number;
+  width: number;
   color: string;
 };
 const useStyles = createUseStyles({
-  dot: ({ percentWidth, color }: StylesProps) => {
+  dot: ({ width, color }: StylesProps) => {
     return {
       backgroundColor: color,
-      width: `${percentWidth}%`,
-      height: `${percentWidth}%`,
-      borderRadius: "50%"
+      width: `${width}%`,
+      height: `${width}%`,
+      borderRadius: "50%",
     };
-  }
+  },
 });
 
 export type DotProps = {
@@ -23,9 +23,9 @@ export type DotProps = {
 
 export const Dot = ({
   percentWidth,
-  color = "black"
+  color = "black",
 }: DotProps): JSX.Element => {
-  const classes = useStyles({ percentWidth, color });
+  const classes = useStyles({ width: Math.min(percentWidth, 1) * 100, color });
 
   return <div className={classes.dot}></div>;
 };

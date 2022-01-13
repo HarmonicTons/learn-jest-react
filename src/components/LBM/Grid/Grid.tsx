@@ -1,6 +1,6 @@
 import React from "react";
 import { createUseStyles } from "react-jss";
-import { Cell } from "./Cell/Cell";
+import { Cell, Distributions } from "./Cell/Cell";
 
 type StylesProps = {
   columns: number;
@@ -13,21 +13,9 @@ const useStyles = createUseStyles({
     gridTemplateRows: ({ rows }: StylesProps) => "1fr ".repeat(rows),
     width: ({ columns }: StylesProps) => `${100 * columns}px`,
     height: ({ rows }: StylesProps) => `${100 * rows}px`,
-    border: "1px solid black"
-  }
+    border: "1px solid black",
+  },
 });
-
-export type Distributions = {
-  NW: number;
-  N: number;
-  NE: number;
-  W: number;
-  C: number;
-  E: number;
-  SW: number;
-  S: number;
-  SE: number;
-};
 
 export type GridProps = {
   grid: Distributions[][];
@@ -42,7 +30,7 @@ export const Grid = ({ grid }: GridProps): JSX.Element => {
       {grid.map((row, y) =>
         row.map((distributions, x) => (
           <Cell key={`${x}-${y}`} distributions={distributions} />
-        ))
+        )),
       )}
     </div>
   );

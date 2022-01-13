@@ -3,31 +3,32 @@ import React from "react";
 import { ComponentStory, ComponentMeta } from "@storybook/react";
 
 import { Grid } from "./Grid";
+import { Distributions } from "./Cell/Cell";
 
 export default {
-  component: Grid
+  component: Grid,
 } as ComponentMeta<typeof Grid>;
 
 const Template: ComponentStory<typeof Grid> = args => <Grid {...args} />;
 
-const d = {
-  NW: 50,
-  N: 50,
-  NE: 50,
-  W: 50,
-  C: 50,
-  E: 50,
-  SW: 50,
-  S: 50,
-  SE: 50
+const d: Distributions = {
+  nNW: 0.5,
+  nN: 0.5,
+  nNE: 0.5,
+  nW: 0.5,
+  n0: 0.5,
+  nE: 0.5,
+  nSW: 0.5,
+  nS: 0.5,
+  nSE: 0.5,
 };
 
 export const ThreeByTwo = Template.bind({});
 ThreeByTwo.args = {
   grid: [
     [d, d, d],
-    [d, d, d]
-  ]
+    [d, d, d],
+  ],
 };
 export const FoorByFoor = Template.bind({});
 FoorByFoor.args = {
@@ -35,6 +36,6 @@ FoorByFoor.args = {
     [d, d, d, d],
     [d, d, d, d],
     [d, d, d, d],
-    [d, d, d, d]
-  ]
+    [d, d, d, d],
+  ],
 };

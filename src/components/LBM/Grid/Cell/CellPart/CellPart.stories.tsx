@@ -5,7 +5,7 @@ import { ComponentStory, ComponentMeta } from "@storybook/react";
 import { CellPart, Direction } from "./CellPart";
 
 export default {
-  component: CellPart
+  component: CellPart,
 } as ComponentMeta<typeof CellPart>;
 
 const Template: ComponentStory<typeof CellPart> = args => (
@@ -17,5 +17,5 @@ const Template: ComponentStory<typeof CellPart> = args => (
 export const Default = Template.bind({});
 Default.args = {
   direction: Direction.NW,
-  arrowSize: 60
+  arrowSize: 0.6,
 };

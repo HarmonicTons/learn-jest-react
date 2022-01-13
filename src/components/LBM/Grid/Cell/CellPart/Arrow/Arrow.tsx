@@ -30,10 +30,10 @@ const useStyles = createUseStyles({
         width: "0",
         height: "0",
         right: `-${a}px`,
-        top: "50%"
-      }
+        top: "50%",
+      },
     };
-  }
+  },
 });
 
 export type ArrowProps = {
@@ -43,14 +43,14 @@ export type ArrowProps = {
 
 export const Arrow = ({
   percentWidth,
-  color = "black"
+  color = "black",
 }: ArrowProps): JSX.Element => {
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   const classes = useStyles({
-    size: (width * percentWidth) / 100,
+    size: width * Math.min(percentWidth, 1),
     maxSize: width,
-    color
+    color,
   });
 
   useLayoutEffect(() => {

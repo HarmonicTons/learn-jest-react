@@ -5,7 +5,7 @@ import { ComponentStory, ComponentMeta } from "@storybook/react";
 import { Dot } from "./Dot";
 
 export default {
-  component: Dot
+  component: Dot,
 } as ComponentMeta<typeof Dot>;
 
 const Template: ComponentStory<typeof Dot> = args => (
@@ -16,5 +16,5 @@ const Template: ComponentStory<typeof Dot> = args => (
 
 export const Medium = Template.bind({});
 Medium.args = {
-  percentWidth: 100
+  percentWidth: 1,
 };

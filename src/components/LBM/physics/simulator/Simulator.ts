@@ -25,7 +25,7 @@ export class Simulator {
     maxUps = 1000,
     gravity = 0.01,
     setInitialFluidGrid = damBreak,
-    setSourcesAndHoles = () => undefined
+    setSourcesAndHoles = () => undefined,
   }: {
     xdim: number;
     ydim: number;
@@ -59,7 +59,7 @@ export class Simulator {
       curl: new Array(xdim * ydim),
       flag: new Array(xdim * ydim),
       m: new Array(xdim * ydim),
-      alpha: new Array(xdim * ydim)
+      alpha: new Array(xdim * ydim),
     };
     this.tmp = {
       xdim,
@@ -79,7 +79,7 @@ export class Simulator {
       curl: new Array(xdim * ydim),
       flag: new Array(xdim * ydim),
       m: new Array(xdim * ydim),
-      alpha: new Array(xdim * ydim)
+      alpha: new Array(xdim * ydim),
     };
 
     setInitialFluidGrid(this.fluidGrid, this.setEquil.bind(this));
@@ -89,7 +89,7 @@ export class Simulator {
     return Math.round(
       1000 /
         (this.lastTimeSteps.reduce((acc, curr) => acc + curr, 0) /
-          this.lastTimeSteps.length)
+          this.lastTimeSteps.length),
     );
   }
 
@@ -128,7 +128,7 @@ export class Simulator {
     }
     if (!stable) {
       throw new Error(
-        "The simulation has become unstable due to excessive fluid speeds."
+        "The simulation has become unstable due to excessive fluid speeds.",
       );
     }
     const timestamp = Date.now();
@@ -414,7 +414,7 @@ export class Simulator {
     newux: number,
     newuy: number,
     optionalNewRho?: number,
-    alpha = 1
+    alpha = 1,
   ): void {
     const fg = this.fluidGrid;
     const { xdim } = fg;

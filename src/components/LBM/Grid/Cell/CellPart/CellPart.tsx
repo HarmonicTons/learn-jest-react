@@ -12,7 +12,7 @@ export enum Direction {
   E = "E",
   SW = "SW",
   S = "S",
-  SE = "SE"
+  SE = "SE",
 }
 
 type StylesProps = {
@@ -22,14 +22,14 @@ const useStyles = createUseStyles({
   cellPart: {
     width: "100%",
     height: "100%",
-    border: "1px dotted black"
+    border: "1px dotted black",
   },
   dotContainer: {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
-    height: "100%"
+    height: "100%",
   },
   arrowContainer: {
     display: "flex",
@@ -69,11 +69,11 @@ const useStyles = createUseStyles({
         Direction.NW,
         Direction.NE,
         Direction.SW,
-        Direction.SE
+        Direction.SE,
       ].includes(direction);
       return `rotate(${deg}deg)${shouldTranslate ? " translate(-15%, 0)" : ""}`;
-    }
-  }
+    },
+  },
 });
 
 export type CellPartProps = {
@@ -83,7 +83,7 @@ export type CellPartProps = {
 
 export const CellPart = ({
   direction,
-  arrowSize
+  arrowSize,
 }: CellPartProps): JSX.Element => {
   const classes = useStyles({ direction });
   const [isHovered, setIsHovered] = useState(false);
@@ -106,7 +106,7 @@ export const CellPart = ({
       >
         {direction === "C" && (
           <Dot
-            percentWidth={arrowSize / 2}
+            percentWidth={arrowSize / 5}
             color={isHovered ? "red" : "black"}
           />
         )}

@@ -5,7 +5,7 @@ import { ComponentStory, ComponentMeta } from "@storybook/react";
 import { Arrow } from "./Arrow";
 
 export default {
-  component: Arrow
+  component: Arrow,
 } as ComponentMeta<typeof Arrow>;
 
 const Template: ComponentStory<typeof Arrow> = args => (
@@ -16,5 +16,5 @@ const Template: ComponentStory<typeof Arrow> = args => (
 
 export const Medium = Template.bind({});
 Medium.args = {
-  percentWidth: 100
+  percentWidth: 1,
 };

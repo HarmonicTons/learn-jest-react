@@ -5,7 +5,7 @@ import { ComponentStory, ComponentMeta } from "@storybook/react";
 import { Cell } from "./Cell";
 
 export default {
-  component: Cell
+  component: Cell,
 } as ComponentMeta<typeof Cell>;
 
 const Template: ComponentStory<typeof Cell> = args => (
@@ -17,14 +17,14 @@ const Template: ComponentStory<typeof Cell> = args => (
 export const Default = Template.bind({});
 Default.args = {
   distributions: {
-    NW: 50,
-    N: 50,
-    NE: 50,
-    W: 50,
-    C: 50,
-    E: 50,
-    SW: 50,
-    S: 50,
-    SE: 50
-  }
+    nNW: 0.5,
+    nN: 0.5,
+    nNE: 0.5,
+    nW: 0.5,
+    n0: 0.5,
+    nE: 0.5,
+    nSW: 0.5,
+    nS: 0.5,
+    nSE: 0.5,
+  },
 };

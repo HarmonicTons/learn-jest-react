@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { createUseStyles } from "react-jss";
 import { CellPart, Direction } from "./CellPart/CellPart";
 
@@ -11,40 +11,72 @@ const useStyles = createUseStyles({
     height: "100%",
     border: "1px solid black",
     "& *": {
-      boxSizing: "border-box"
-    }
-  }
+      boxSizing: "border-box",
+    },
+  },
 });
 
 export type Distributions = {
-  NW: number;
-  N: number;
-  NE: number;
-  W: number;
-  C: number;
-  E: number;
-  SW: number;
-  S: number;
-  SE: number;
+  nNW: number;
+  nN: number;
+  nNE: number;
+  nW: number;
+  n0: number;
+  nE: number;
+  nSW: number;
+  nS: number;
+  nSE: number;
 };
 
 export type CellProps = {
   distributions: Distributions;
+  scaleArrow?: number;
 };
 
-export const Cell = ({ distributions }: CellProps): JSX.Element => {
+export const Cell = ({
+  distributions,
+  scaleArrow = 5,
+}: CellProps): JSX.Element => {
   const classes = useStyles();
+  const getArrowSize = useCallback((d: number) => d * scaleArrow, [scaleArrow]);
   return (
     <div className={classes.cell}>
-      <CellPart direction={Direction.NW} arrowSize={distributions.NW} />
-      <CellPart direction={Direction.N} arrowSize={distributions.N} />
-      <CellPart direction={Direction.NE} arrowSize={distributions.NE} />
-      <CellPart direction={Direction.W} arrowSize={distributions.W} />
-      <CellPart direction={Direction.C} arrowSize={distributions.C} />
-      <CellPart direction={Direction.E} arrowSize={distributions.E} />
-      <CellPart direction={Direction.SW} arrowSize={distributions.SW} />
-      <CellPart direction={Direction.S} arrowSize={distributions.S} />
-      <CellPart direction={Direction.SE} arrowSize={distributions.SE} />
+      <CellPart
+        direction={Direction.NW}
+        arrowSize={getArrowSize(distributions.nNW)}
+      />
+      <CellPart
+        direction={Direction.N}
+        arrowSize={getArrowSize(distributions.nN)}
+      />
+      <CellPart
+        direction={Direction.NE}
+        arrowSize={getArrowSize(distributions.nNE)}
+      />
+      <CellPart
+        direction={Direction.W}
+        arrowSize={getArrowSize(distributions.nW)}
+      />
+      <CellPart
+        direction={Direction.C}
+        arrowSize={getArrowSize(distributions.n0)}
+      />
+      <CellPart
+        direction={Direction.E}
+        arrowSize={getArrowSize(distributions.nE)}
+      />
+      <CellPart
+        direction={Direction.SW}
+        arrowSize={getArrowSize(distributions.nSW)}
+      />
+      <CellPart
+        direction={Direction.S}
+        arrowSize={getArrowSize(distributions.nS)}
+      />
+      <CellPart
+        direction={Direction.SE}
+        arrowSize={getArrowSize(distributions.nSE)}
+      />
     </div>
   );
 };
