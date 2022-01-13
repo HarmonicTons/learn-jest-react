@@ -1,6 +1,7 @@
 import React, { useCallback } from "react";
 import { createUseStyles } from "react-jss";
-import { CellPart, Direction } from "./CellPart/CellPart";
+import { Direction, Distributions } from "../../business/distributions";
+import { CellPart } from "./CellPart/CellPart";
 
 const useStyles = createUseStyles({
   cell: {
@@ -15,18 +16,6 @@ const useStyles = createUseStyles({
     },
   },
 });
-
-export type Distributions = {
-  nNW: number;
-  nN: number;
-  nNE: number;
-  nW: number;
-  n0: number;
-  nE: number;
-  nSW: number;
-  nS: number;
-  nSE: number;
-};
 
 export type CellProps = {
   distributions: Distributions;
@@ -43,39 +32,39 @@ export const Cell = ({
     <div className={classes.cell}>
       <CellPart
         direction={Direction.NW}
-        arrowSize={getArrowSize(distributions.nNW)}
+        arrowSize={getArrowSize(distributions.NW)}
       />
       <CellPart
         direction={Direction.N}
-        arrowSize={getArrowSize(distributions.nN)}
+        arrowSize={getArrowSize(distributions.N)}
       />
       <CellPart
         direction={Direction.NE}
-        arrowSize={getArrowSize(distributions.nNE)}
+        arrowSize={getArrowSize(distributions.NE)}
       />
       <CellPart
         direction={Direction.W}
-        arrowSize={getArrowSize(distributions.nW)}
+        arrowSize={getArrowSize(distributions.W)}
       />
       <CellPart
         direction={Direction.C}
-        arrowSize={getArrowSize(distributions.n0)}
+        arrowSize={getArrowSize(distributions.C)}
       />
       <CellPart
         direction={Direction.E}
-        arrowSize={getArrowSize(distributions.nE)}
+        arrowSize={getArrowSize(distributions.E)}
       />
       <CellPart
         direction={Direction.SW}
-        arrowSize={getArrowSize(distributions.nSW)}
+        arrowSize={getArrowSize(distributions.SW)}
       />
       <CellPart
         direction={Direction.S}
-        arrowSize={getArrowSize(distributions.nS)}
+        arrowSize={getArrowSize(distributions.S)}
       />
       <CellPart
         direction={Direction.SE}
-        arrowSize={getArrowSize(distributions.nSE)}
+        arrowSize={getArrowSize(distributions.SE)}
       />
     </div>
   );

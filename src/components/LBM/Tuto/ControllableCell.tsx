@@ -1,50 +1,18 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Cell } from "./components/Cell/Cell";
-import { Distributions, equil } from "../physics/simulator/equil";
 import { Slider } from "./components/Slider/Slider";
 import "./style.css";
-
-const calculateRho = (distributions: Distributions): number => {
-  return (
-    distributions.nNW +
-    distributions.nN +
-    distributions.nNE +
-    distributions.nW +
-    distributions.n0 +
-    distributions.nE +
-    distributions.nSW +
-    distributions.nS +
-    distributions.nSE
-  );
-};
-
-const calculateUx = (distributions: Distributions, rho: number): number => {
-  return (
-    (distributions.nE +
-      distributions.nNE +
-      distributions.nSE -
-      distributions.nW -
-      distributions.nNW -
-      distributions.nSW) /
-    rho
-  );
-};
-
-const calculateUy = (distributions: Distributions, rho: number): number => {
-  return (
-    (distributions.nN +
-      distributions.nNW +
-      distributions.nNE -
-      distributions.nS -
-      distributions.nSW -
-      distributions.nSE) /
-    rho
-  );
-};
+import {
+  calculateRho,
+  calculateUx,
+  calculateUy,
+  Distributions,
+  getEquilibriumDistribution,
+} from "./business/distributions";
 
 const toFixedNumber = (n: number): number => Number(n.toFixed(3));
 
-export const Tuto = (): JSX.Element => {
+export const ControllableCell = (): JSX.Element => {
   const [nNW, setNW] = useState(0);
   const [nN, setN] = useState(0);
   const [nNE, setNE] = useState(0);
@@ -56,7 +24,17 @@ export const Tuto = (): JSX.Element => {
   const [nSE, setSE] = useState(0);
 
   const setEquil = useCallback((rho, ux, uy) => {
-    const { n0, nE, nN, nNE, nNW, nS, nSE, nSW, nW } = equil(rho, ux, uy);
+    const {
+      C: n0,
+      E: nE,
+      N: nN,
+      NE: nNE,
+      NW: nNW,
+      S: nS,
+      SE: nSE,
+      SW: nSW,
+      W: nW,
+    } = getEquilibriumDistribution(rho, ux, uy);
     setNW(toFixedNumber(nNW));
     setN(toFixedNumber(nN));
     setNE(toFixedNumber(nNE));
@@ -74,15 +52,15 @@ export const Tuto = (): JSX.Element => {
 
   const distributions = useMemo<Distributions>(
     () => ({
-      n0,
-      nE,
-      nN,
-      nNE,
-      nNW,
-      nS,
-      nSE,
-      nSW,
-      nW,
+      C: n0,
+      E: nE,
+      N: nN,
+      NE: nNE,
+      NW: nNW,
+      S: nS,
+      SE: nSE,
+      SW: nSW,
+      W: nW,
     }),
     [n0, nE, nN, nNE, nNW, nS, nSE, nSW, nW],
   );

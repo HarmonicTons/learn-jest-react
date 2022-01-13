@@ -2,7 +2,8 @@ import React from "react";
 
 import { ComponentStory, ComponentMeta } from "@storybook/react";
 
-import { CellPart, Direction } from "./CellPart";
+import { CellPart } from "./CellPart";
+import { Direction } from "../../../business/distributions";
 
 export default {
   component: CellPart,

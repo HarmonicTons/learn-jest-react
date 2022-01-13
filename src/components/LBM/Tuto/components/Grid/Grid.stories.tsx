@@ -3,7 +3,7 @@ import React from "react";
 import { ComponentStory, ComponentMeta } from "@storybook/react";
 
 import { Grid } from "./Grid";
-import { Distributions } from "../Cell/Cell";
+import { Distributions } from "../../business/distributions";
 
 export default {
   component: Grid,
@@ -12,15 +12,15 @@ export default {
 const Template: ComponentStory<typeof Grid> = args => <Grid {...args} />;
 
 const d: Distributions = {
-  nNW: 0.5,
-  nN: 0.5,
-  nNE: 0.5,
-  nW: 0.5,
-  n0: 0.5,
-  nE: 0.5,
-  nSW: 0.5,
-  nS: 0.5,
-  nSE: 0.5,
+  NW: 0.5,
+  N: 0.5,
+  NE: 0.5,
+  W: 0.5,
+  C: 0.5,
+  E: 0.5,
+  SW: 0.5,
+  S: 0.5,
+  SE: 0.5,
 };
 
 export const ThreeByTwo = Template.bind({});

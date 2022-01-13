@@ -1,19 +1,8 @@
 import React, { useCallback, useState } from "react";
 import { createUseStyles } from "react-jss";
+import { Direction } from "../../../business/distributions";
 import { Arrow } from "./Arrow/Arrow";
 import { Dot } from "./Dot/Dot";
-
-export enum Direction {
-  NW = "NW",
-  N = "N",
-  NE = "NE",
-  W = "W",
-  C = "C",
-  E = "E",
-  SW = "SW",
-  S = "S",
-  SE = "SE",
-}
 
 type StylesProps = {
   direction: Direction;
