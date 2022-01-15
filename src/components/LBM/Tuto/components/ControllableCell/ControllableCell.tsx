@@ -1,49 +1,44 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Cell } from "./components/Cell/Cell";
-import { Slider } from "./components/Slider/Slider";
+import { Cell } from "../Cell/Cell";
+import { Slider } from "../Slider/Slider";
 import "./style.css";
 import {
   calculateRho,
   calculateUx,
   calculateUy,
+  Direction,
   Distributions,
   getEquilibriumDistribution,
-} from "./business/cell";
+} from "../../domain/cell";
 
 const toFixedNumber = (n: number): number => Number(n.toFixed(3));
 
 export const ControllableCell = (): JSX.Element => {
-  const [nNW, setNW] = useState(0);
-  const [nN, setN] = useState(0);
-  const [nNE, setNE] = useState(0);
-  const [nW, setW] = useState(0);
-  const [n0, set0] = useState(0);
-  const [nE, setE] = useState(0);
-  const [nSW, setSW] = useState(0);
-  const [nS, setS] = useState(0);
-  const [nSE, setSE] = useState(0);
+  const [NW, setNW] = useState(0);
+  const [N, setN] = useState(0);
+  const [NE, setNE] = useState(0);
+  const [W, setW] = useState(0);
+  const [C, setC] = useState(0);
+  const [E, setE] = useState(0);
+  const [SW, setSW] = useState(0);
+  const [S, setS] = useState(0);
+  const [SE, setSE] = useState(0);
 
   const setEquil = useCallback((rho, ux, uy) => {
-    const {
-      n0: n0,
-      nE: nE,
-      nN: nN,
-      nNE: nNE,
-      nNW: nNW,
-      nS: nS,
-      nSE: nSE,
-      nSW: nSW,
-      nW: nW,
-    } = getEquilibriumDistribution(rho, ux, uy);
-    setNW(toFixedNumber(nNW));
-    setN(toFixedNumber(nN));
-    setNE(toFixedNumber(nNE));
-    setW(toFixedNumber(nW));
-    set0(toFixedNumber(n0));
-    setE(toFixedNumber(nE));
-    setSW(toFixedNumber(nSW));
-    setS(toFixedNumber(nS));
-    setSE(toFixedNumber(nSE));
+    const { C, E, N, NE, NW, S, SE, SW, W } = getEquilibriumDistribution(
+      rho,
+      ux,
+      uy,
+    );
+    setNW(toFixedNumber(NW));
+    setN(toFixedNumber(N));
+    setNE(toFixedNumber(NE));
+    setW(toFixedNumber(W));
+    setC(toFixedNumber(C));
+    setE(toFixedNumber(E));
+    setSW(toFixedNumber(SW));
+    setS(toFixedNumber(S));
+    setSE(toFixedNumber(SE));
   }, []);
 
   useEffect(() => {
@@ -52,72 +47,79 @@ export const ControllableCell = (): JSX.Element => {
 
   const distributions = useMemo<Distributions>(
     () => ({
-      n0: n0,
-      nE: nE,
-      nN: nN,
-      nNE: nNE,
-      nNW: nNW,
-      nS: nS,
-      nSE: nSE,
-      nSW: nSW,
-      nW: nW,
+      C,
+      E,
+      N,
+      NE,
+      NW,
+      S,
+      SE,
+      SW,
+      W,
     }),
-    [n0, nE, nN, nNE, nNW, nS, nSE, nSW, nW],
+    [C, E, N, NE, NW, S, SE, SW, W],
   );
 
-  const rho = useMemo(
-    () => calculateRho(nNW, nN, nNE, nW, n0, nE, nSW, nS, nSE),
-    [nNW, nN, nNE, nW, n0, nE, nSW, nS, nSE],
-  );
+  const rho = useMemo(() => calculateRho(NW, N, NE, W, C, E, SW, S, SE), [
+    NW,
+    N,
+    NE,
+    W,
+    C,
+    E,
+    SW,
+    S,
+    SE,
+  ]);
 
-  const ux = useMemo(() => calculateUx(nNW, nNE, nW, nE, nSW, nSE, rho), [
-    nNW,
-    nNE,
-    nW,
-    nE,
-    nSW,
-    nSE,
+  const ux = useMemo(() => calculateUx(NW, NE, W, E, SW, SE, rho), [
+    NW,
+    NE,
+    W,
+    E,
+    SW,
+    SE,
     rho,
   ]);
 
-  const uy = useMemo(() => calculateUy(nNW, nN, nNE, nSW, nS, nSE, rho), [
-    nNW,
-    nN,
-    nNE,
-    nSW,
-    nS,
-    nSE,
+  const uy = useMemo(() => calculateUy(NW, N, NE, SW, S, SE, rho), [
+    NW,
+    N,
+    NE,
+    SW,
+    S,
+    SE,
     rho,
   ]);
 
   const handleChange = useCallback(
     (key: string) => (value: number) => {
       switch (key) {
-        case "nNW":
+        case Direction.NW:
           setNW(value);
           break;
-        case "nN":
+        case Direction.N:
           setN(value);
           break;
-        case "nNE":
+        case Direction.NE:
           setNE(value);
           break;
-        case "nW":
+        case Direction.W:
           setW(value);
           break;
-        case "n0":
-          set0(value);
+        case Direction.C:
+          setC(value);
           break;
-        case "nE":
+        case Direction.E:
           setE(value);
           break;
-        case "nSW":
+        case Direction.SW:
           setSW(value);
           break;
-        case "nS":
+        case Direction.S:
           setS(value);
           break;
-        case "nSE":
+        case Direction.SE:
           setSE(value);
           break;
       }

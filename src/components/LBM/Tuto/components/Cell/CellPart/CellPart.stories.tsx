@@ -3,7 +3,7 @@ import React from "react";
 import { ComponentStory, ComponentMeta } from "@storybook/react";
 
 import { CellPart } from "./CellPart";
-import { Direction } from "../../../business/cell";
+import { Direction } from "../../../domain/cell";
 
 export default {
   component: CellPart,

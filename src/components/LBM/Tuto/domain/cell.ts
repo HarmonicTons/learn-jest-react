@@ -17,17 +17,7 @@ export enum Flags {
   interface = "interface",
 }
 
-export type Distributions = {
-  NW: number;
-  N: number;
-  NE: number;
-  W: number;
-  C: number;
-  E: number;
-  SW: number;
-  S: number;
-  SE: number;
-};
+export type Distributions = Record<Direction, number>;
 
 export const calculateRho = (
   NW: number,

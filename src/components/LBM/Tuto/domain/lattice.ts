@@ -1,3 +1,4 @@
+import { cloneDeep } from "lodash";
 import { curry } from "ramda";
 import {
   Flags,
@@ -79,38 +80,68 @@ export type Lattice = {
 /**
  * Create an empty lattice distributions
  */
-export const makeLatticeDistributions = (
+export const makeLatticeDistributionsStructure = (
   x: number,
   y: number,
 ): LatticeDistributions => ({
-  C: new Array(x * y),
-  N: new Array(x * y),
-  S: new Array(x * y),
-  E: new Array(x * y),
-  W: new Array(x * y),
-  NE: new Array(x * y),
-  SE: new Array(x * y),
-  NW: new Array(x * y),
-  SW: new Array(x * y),
+  C: [...Array(x * y)].fill(0),
+  N: [...Array(x * y)].fill(0),
+  S: [...Array(x * y)].fill(0),
+  E: [...Array(x * y)].fill(0),
+  W: [...Array(x * y)].fill(0),
+  NE: [...Array(x * y)].fill(0),
+  SE: [...Array(x * y)].fill(0),
+  NW: [...Array(x * y)].fill(0),
+  SW: [...Array(x * y)].fill(0),
 });
 
 /**
  * Create an empty lattice
  */
-export const makeLattice = (x: number, y: number): Lattice => ({
+export const makeLatticeStructure = (x: number, y: number): Lattice => ({
   x,
   y,
 
-  distributions: makeLatticeDistributions(x, y),
-  nextDistributions: makeLatticeDistributions(x, y),
+  distributions: makeLatticeDistributionsStructure(x, y),
+  nextDistributions: makeLatticeDistributionsStructure(x, y),
 
-  rho: new Array(x * y),
-  ux: new Array(x * y),
-  uy: new Array(x * y),
-  flag: new Array(x * y),
-  m: new Array(x * y),
-  alpha: new Array(x * y),
+  rho: [...Array(x * y)].fill(0),
+  ux: [...Array(x * y)].fill(0),
+  uy: [...Array(x * y)].fill(0),
+  flag: [...Array(x * y)].fill(Flags.barrier),
+  m: [...Array(x * y)].fill(0),
+  alpha: [...Array(x * y)].fill(1),
 });
+
+export const makeLatticeAtEquilibirium = (
+  x: number,
+  y: number,
+  rho: number,
+  ux: number,
+  uy: number,
+): Lattice => {
+  const lattice = makeLatticeStructure(x, y);
+  const equilibriumDistribution = getEquilibriumDistribution(rho, ux, uy);
+  forEachCellOfLattice(lattice, i => {
+    lattice.distributions.C[i] = equilibriumDistribution.C;
+    lattice.distributions.NW[i] = equilibriumDistribution.NW;
+    lattice.distributions.N[i] = equilibriumDistribution.N;
+    lattice.distributions.NE[i] = equilibriumDistribution.NE;
+    lattice.distributions.W[i] = equilibriumDistribution.W;
+    lattice.distributions.E[i] = equilibriumDistribution.E;
+    lattice.distributions.SW[i] = equilibriumDistribution.SW;
+    lattice.distributions.S[i] = equilibriumDistribution.S;
+    lattice.distributions.SE[i] = equilibriumDistribution.SE;
+    lattice.nextDistributions = cloneDeep(lattice.distributions);
+    lattice.rho[i] = rho;
+    lattice.ux[i] = ux;
+    lattice.uy[i] = uy;
+    lattice.m[i] = rho;
+    lattice.alpha[i] = 1;
+    lattice.flag[i] = Flags.fluid;
+  });
+  return lattice;
+};
 
 /**
  * get the lattice index of a position (x, y)

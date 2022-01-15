@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { createUseStyles } from "react-jss";
-import { Direction } from "../../../business/cell";
+import { Direction } from "../../../domain/cell";
 import { Arrow } from "./Arrow/Arrow";
 import { Dot } from "./Dot/Dot";
 
