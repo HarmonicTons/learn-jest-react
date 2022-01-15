@@ -10,6 +10,7 @@ type CellStylesProps = {
   ux: number;
   uy: number;
   isSelected: boolean;
+  flag: Flags;
 };
 const useStyles = createUseStyles({
   cell: {
@@ -24,6 +25,16 @@ const useStyles = createUseStyles({
     "& *": {
       boxSizing: "border-box",
     },
+    background: ({ flag }: CellStylesProps) =>
+      flag === Flags.barrier
+        ? `repeating-linear-gradient(
+      45deg,
+      black,
+      black 5%,
+      white 5%,
+      white 17%
+    )`
+        : "",
   },
   mask: {
     position: "absolute",
@@ -62,7 +73,7 @@ export const Cell = ({
   onClick,
   isSelected = false,
 }: CellProps): JSX.Element => {
-  const classNames = useStyles({ ux, uy, isSelected });
+  const classNames = useStyles({ ux, uy, isSelected, flag });
   const getArrowSize = useCallback((d: number) => d * scaleArrow, [scaleArrow]);
   const u = useMemo(() => getU(ux, uy), [ux, uy]);
   return (
@@ -110,7 +121,7 @@ export const Cell = ({
             arrowSize={getArrowSize(distributions.SE)}
           />
           <div className={classNames.mask}>
-            <Arrow percentWidth={u / 0.1} color="red" />
+            <Arrow percentWidth={u / 0.1} color="rgba(255, 0, 0, 0.7)" />
           </div>
         </>
       )}

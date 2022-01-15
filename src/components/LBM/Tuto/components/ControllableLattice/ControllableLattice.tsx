@@ -2,6 +2,7 @@ import { cloneDeep } from "lodash";
 import React, { useCallback, useState } from "react";
 import { collide, Lattice as TLattice, stream } from "../../domain/lattice";
 import { Lattice } from "../Lattice/Lattice";
+import { useControllableLatticeStyles } from "./ControllableLattice.styles";
 
 export type ControllableLatticeProps = {
   lattice: TLattice;
@@ -14,6 +15,7 @@ export const ControllableLattice = ({
   viscosity = 0.02,
   gravity = 0.01,
 }: ControllableLatticeProps): JSX.Element => {
+  const classNames = useControllableLatticeStyles();
   const [lattice, setLattice] = useState(cloneDeep(initialLattice));
   const handleClickReset = useCallback(() => {
     setLattice({ ...initialLattice });
@@ -30,16 +32,16 @@ export const ControllableLattice = ({
   const [selectedCell, setSelectedCell] = useState<number | undefined>();
 
   return (
-    <div>
-      <input type="button" value="reset" onClick={handleClickReset} />
-      <input type="button" value="collide" onClick={handleClickCollide} />
-      <input type="button" value="stream" onClick={handleClickStream} />
+    <div className={classNames.container}>
       <Lattice
         lattice={lattice}
         selectedCell={selectedCell}
         onChangeSelectedCell={setSelectedCell}
       />
-      <div>
+      <div className={classNames.controllerPanel}>
+        <input type="button" value="reset" onClick={handleClickReset} />
+        <input type="button" value="collide" onClick={handleClickCollide} />
+        <input type="button" value="stream" onClick={handleClickStream} />
         {selectedCell && (
           <>
             <div>index: {selectedCell}</div>

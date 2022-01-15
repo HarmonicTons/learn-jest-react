@@ -4,6 +4,7 @@ import { ComponentStory, ComponentMeta } from "@storybook/react";
 
 import { ControllableLattice } from "./ControllableLattice";
 import { makeLatticeAtEquilibirium } from "../../domain/lattice";
+import { Flags } from "../../domain/cell";
 
 export default {
   component: ControllableLattice,
@@ -35,5 +36,14 @@ const lattice3 = makeLatticeAtEquilibirium(6, 5, 1, 0, 0);
 export const Lattice3 = Template.bind({});
 Lattice3.args = {
   lattice: lattice3,
+  gravity: 0.02,
+};
+
+const lattice4 = makeLatticeAtEquilibirium(6, 5, 1, 0.1, 0);
+lattice4.flag[15] = Flags.barrier;
+
+export const Lattice4 = Template.bind({});
+Lattice4.args = {
+  lattice: lattice4,
   gravity: 0.02,
 };
