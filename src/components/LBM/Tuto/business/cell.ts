@@ -18,53 +18,53 @@ export enum Flags {
 }
 
 export type Distributions = {
-  nNW: number;
-  nN: number;
-  nNE: number;
-  nW: number;
-  n0: number;
-  nE: number;
-  nSW: number;
-  nS: number;
-  nSE: number;
+  NW: number;
+  N: number;
+  NE: number;
+  W: number;
+  C: number;
+  E: number;
+  SW: number;
+  S: number;
+  SE: number;
 };
 
 export const calculateRho = (
-  nNW: number,
-  nN: number,
-  nNE: number,
-  nW: number,
-  n0: number,
-  nE: number,
-  nSW: number,
-  nS: number,
-  nSE: number,
+  NW: number,
+  N: number,
+  NE: number,
+  W: number,
+  C: number,
+  E: number,
+  SW: number,
+  S: number,
+  SE: number,
 ): number => {
-  return nNW + nN + nNE + nW + n0 + nE + nSW + nS + nSE;
+  return NW + N + NE + W + C + E + SW + S + SE;
 };
 
 export const calculateUx = (
-  nNW: number,
-  nNE: number,
-  nW: number,
-  nE: number,
-  nSW: number,
-  nSE: number,
+  NW: number,
+  NE: number,
+  W: number,
+  E: number,
+  SW: number,
+  SE: number,
   rho: number,
 ): number => {
-  return (nE + nNE + nSE - nW - nNW - nSW) / rho;
+  return (E + NE + SE - W - NW - SW) / rho;
 };
 
 export const calculateUy = (
-  nNW: number,
-  nN: number,
-  nNE: number,
-  nSW: number,
-  nS: number,
-  nSE: number,
+  NW: number,
+  N: number,
+  NE: number,
+  SW: number,
+  S: number,
+  SE: number,
   rho: number,
 ): number => {
-  return (nN + nNW + nNE - nS - nSW - nSE) / rho;
+  return (N + NW + NE - S - SW - SE) / rho;
 };
 
 export const getEquilibriumDistribution = (
@@ -80,14 +80,81 @@ export const getEquilibriumDistribution = (
   const u2 = ux2 + uy2;
   const u215 = 1.5 * u2;
   return {
-    n0: (4 / 9) * rho * (1 - u215),
-    nE: (1 / 9) * rho * (1 + ux3 + 4.5 * ux2 - u215),
-    nW: (1 / 9) * rho * (1 - ux3 + 4.5 * ux2 - u215),
-    nN: (1 / 9) * rho * (1 + uy3 + 4.5 * uy2 - u215),
-    nS: (1 / 9) * rho * (1 - uy3 + 4.5 * uy2 - u215),
-    nNE: (1 / 36) * rho * (1 + ux3 + uy3 + 4.5 * (u2 + uxuy2) - u215),
-    nSE: (1 / 36) * rho * (1 + ux3 - uy3 + 4.5 * (u2 - uxuy2) - u215),
-    nNW: (1 / 36) * rho * (1 - ux3 + uy3 + 4.5 * (u2 - uxuy2) - u215),
-    nSW: (1 / 36) * rho * (1 - ux3 - uy3 + 4.5 * (u2 + uxuy2) - u215),
+    C: (4 / 9) * rho * (1 - u215),
+    E: (1 / 9) * rho * (1 + ux3 + 4.5 * ux2 - u215),
+    W: (1 / 9) * rho * (1 - ux3 + 4.5 * ux2 - u215),
+    N: (1 / 9) * rho * (1 + uy3 + 4.5 * uy2 - u215),
+    S: (1 / 9) * rho * (1 - uy3 + 4.5 * uy2 - u215),
+    NE: (1 / 36) * rho * (1 + ux3 + uy3 + 4.5 * (u2 + uxuy2) - u215),
+    SE: (1 / 36) * rho * (1 + ux3 - uy3 + 4.5 * (u2 - uxuy2) - u215),
+    NW: (1 / 36) * rho * (1 - ux3 + uy3 + 4.5 * (u2 - uxuy2) - u215),
+    SW: (1 / 36) * rho * (1 - ux3 - uy3 + 4.5 * (u2 + uxuy2) - u215),
+  };
+};
+
+export const calculateOmega = (viscosity: number): number =>
+  1 / (3 * viscosity + 0.5);
+
+export const collide = (
+  flag: Flags,
+  NW: number,
+  N: number,
+  NE: number,
+  W: number,
+  C: number,
+  E: number,
+  SW: number,
+  S: number,
+  SE: number,
+  m: number,
+  viscosity: number,
+  gravity: number,
+):
+  | {
+      rho: number;
+      ux: number;
+      uy: number;
+      C: number;
+      E: number;
+      W: number;
+      N: number;
+      S: number;
+      NE: number;
+      SE: number;
+      NW: number;
+      SW: number;
+    }
+  | undefined => {
+  if (flag !== Flags.fluid && flag !== Flags.interface) {
+    return;
+  }
+  const rho = calculateRho(NW, N, NE, W, C, E, SW, S, SE);
+  const ux = calculateUx(NW, NE, W, E, SW, SE, rho);
+  const uy = calculateUy(NW, N, NE, SW, S, SE, rho);
+  const {
+    NW: NWeq,
+    N: Neq,
+    NE: NEeq,
+    W: Weq,
+    C: Ceq,
+    E: Eeq,
+    SW: SWeq,
+    S: Seq,
+    SE: SEeq,
+  } = getEquilibriumDistribution(rho, ux, uy);
+  const omega = calculateOmega(viscosity);
+  return {
+    rho,
+    ux,
+    uy,
+    C: C + omega * (Ceq - C),
+    E: E + omega * (Eeq - E),
+    W: W + omega * (Weq - W),
+    N: N + omega * (Neq - N) - (gravity * m) / 9,
+    S: S + omega * (Seq - S) + (gravity * m) / 9,
+    NE: NE + omega * (NEeq - NE) - (gravity * m) / 36,
+    SE: SE + omega * (SEeq - SE) + (gravity * m) / 36,
+    NW: NW + omega * (NWeq - NW) - (gravity * m) / 36,
+    SW: SW + omega * (SWeq - SW) + (gravity * m) / 36,
   };
 };
