@@ -16,6 +16,8 @@ const Template: ComponentStory<typeof Cell> = args => (
 
 export const Default = Template.bind({});
 Default.args = {
+  ux: 0,
+  uy: 0,
   distributions: {
     NW: 0.5,
     N: 0.5,

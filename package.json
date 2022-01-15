@@ -57,6 +57,7 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.14.0",
+    "@quid/react-use-controlled-state": "^4.0.0",
     "@testing-library/user-event": "^12.1.5",
     "@types/lodash": "^4.14.161",
     "axios": "^0.20.0",

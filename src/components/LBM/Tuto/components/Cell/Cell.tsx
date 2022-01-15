@@ -1,37 +1,76 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { createUseStyles } from "react-jss";
 import { Direction, Distributions, Flags } from "../../domain/cell";
+import { Arrow } from "./CellPart/Arrow/Arrow";
 import { CellPart } from "./CellPart/CellPart";
 
+const getU = (ux: number, uy: number) => Math.sqrt(ux ** 2 + uy ** 2);
+
+type CellStylesProps = {
+  ux: number;
+  uy: number;
+  isSelected: boolean;
+};
 const useStyles = createUseStyles({
   cell: {
+    position: "relative",
     display: "grid",
     gridTemplateColumns: "1fr 1fr 1fr",
     gridTemplateRows: "1fr 1fr 1fr",
     width: "100%",
     height: "100%",
-    border: "1px solid black",
+    border: ({ isSelected }: CellStylesProps) =>
+      `${isSelected ? 3 : 1}px solid black`,
     "& *": {
       boxSizing: "border-box",
+    },
+  },
+  mask: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    display: "flex",
+    alignItems: "center",
+    paddingLeft: "50%",
+    transform: ({ ux, uy }: CellStylesProps) => {
+      const a = -Math.sign(uy) * Math.acos(ux / getU(ux, uy));
+      return `rotate(${a}rad)`;
     },
   },
 });
 
 export type CellProps = {
   flag?: Flags;
+  ux: number;
+  uy: number;
   distributions: Distributions;
   scaleArrow?: number;
+  onMouseEnter?: () => void;
+  onClick?: () => void;
+  isSelected?: boolean;
 };
 
 export const Cell = ({
   flag = Flags.fluid,
+  ux,
+  uy,
   distributions,
   scaleArrow = 5,
+  onMouseEnter,
+  onClick,
+  isSelected = false,
 }: CellProps): JSX.Element => {
-  const classes = useStyles();
+  const classNames = useStyles({ ux, uy, isSelected });
   const getArrowSize = useCallback((d: number) => d * scaleArrow, [scaleArrow]);
+  const u = useMemo(() => getU(ux, uy), [ux, uy]);
   return (
-    <div className={classes.cell}>
+    <div
+      className={classNames.cell}
+      onMouseEnter={onMouseEnter}
+      onClick={onClick}
+    >
       {flag === Flags.fluid && (
         <>
           <CellPart
@@ -70,6 +109,9 @@ export const Cell = ({
             direction={Direction.SE}
             arrowSize={getArrowSize(distributions.SE)}
           />
+          <div className={classNames.mask}>
+            <Arrow percentWidth={u / 0.1} color="red" />
+          </div>
         </>
       )}
     </div>

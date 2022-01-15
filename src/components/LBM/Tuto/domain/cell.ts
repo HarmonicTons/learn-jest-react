@@ -96,31 +96,16 @@ export const collide = (
   SW: number,
   S: number,
   SE: number,
+  rho: number,
+  ux: number,
+  uy: number,
   m: number,
   viscosity: number,
   gravity: number,
-):
-  | {
-      rho: number;
-      ux: number;
-      uy: number;
-      C: number;
-      E: number;
-      W: number;
-      N: number;
-      S: number;
-      NE: number;
-      SE: number;
-      NW: number;
-      SW: number;
-    }
-  | undefined => {
+): Distributions | undefined => {
   if (flag !== Flags.fluid && flag !== Flags.interface) {
     return;
   }
-  const rho = calculateRho(NW, N, NE, W, C, E, SW, S, SE);
-  const ux = calculateUx(NW, NE, W, E, SW, SE, rho);
-  const uy = calculateUy(NW, N, NE, SW, S, SE, rho);
   const {
     NW: NWeq,
     N: Neq,
@@ -134,9 +119,6 @@ export const collide = (
   } = getEquilibriumDistribution(rho, ux, uy);
   const omega = calculateOmega(viscosity);
   return {
-    rho,
-    ux,
-    uy,
     C: C + omega * (Ceq - C),
     E: E + omega * (Eeq - E),
     W: W + omega * (Weq - W),

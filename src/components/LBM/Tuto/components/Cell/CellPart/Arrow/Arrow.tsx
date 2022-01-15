@@ -1,3 +1,4 @@
+import { round } from "lodash";
 import React, { useLayoutEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 
@@ -48,7 +49,7 @@ export const Arrow = ({
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   const classes = useStyles({
-    size: width * Math.min(percentWidth, 1),
+    size: round(width * Math.min(percentWidth, 1), 3),
     maxSize: width,
     color,
   });

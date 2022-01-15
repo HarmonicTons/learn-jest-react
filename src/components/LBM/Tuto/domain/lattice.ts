@@ -5,6 +5,9 @@ import {
   collide as collideCell,
   Direction,
   getEquilibriumDistribution,
+  calculateRho,
+  calculateUx,
+  calculateUy,
 } from "./cell";
 
 export const DirectionRecord: Record<
@@ -191,6 +194,9 @@ export const collide = (
       distributions.SW[i],
       distributions.S[i],
       distributions.SE[i],
+      lattice.rho[i],
+      lattice.ux[i],
+      lattice.uy[i],
       lattice.m[i],
       viscosity,
       gravity,
@@ -207,9 +213,6 @@ export const collide = (
     distributions.SW[i] = collided.SW;
     distributions.S[i] = collided.S;
     distributions.SE[i] = collided.SE;
-    lattice.rho[i] = collided.rho;
-    lattice.ux[i] = collided.ux;
-    lattice.uy[i] = collided.uy;
   });
 };
 
@@ -258,6 +261,36 @@ export const stream = (lattice: Lattice): void => {
     Object.values(Direction).forEach(dir => {
       lattice.nextDistributions[dir][i] = streamFrom(dir);
     });
+    const rho = calculateRho(
+      lattice.nextDistributions.NW[i],
+      lattice.nextDistributions.N[i],
+      lattice.nextDistributions.NE[i],
+      lattice.nextDistributions.W[i],
+      lattice.nextDistributions.C[i],
+      lattice.nextDistributions.E[i],
+      lattice.nextDistributions.SW[i],
+      lattice.nextDistributions.S[i],
+      lattice.nextDistributions.SE[i],
+    );
+    lattice.rho[i] = rho;
+    lattice.ux[i] = calculateUx(
+      lattice.nextDistributions.NW[i],
+      lattice.nextDistributions.NE[i],
+      lattice.nextDistributions.W[i],
+      lattice.nextDistributions.E[i],
+      lattice.nextDistributions.SW[i],
+      lattice.nextDistributions.SE[i],
+      rho,
+    );
+    lattice.uy[i] = calculateUy(
+      lattice.nextDistributions.NW[i],
+      lattice.nextDistributions.N[i],
+      lattice.nextDistributions.NE[i],
+      lattice.nextDistributions.SW[i],
+      lattice.nextDistributions.S[i],
+      lattice.nextDistributions.SE[i],
+      rho,
+    );
   });
   // swap distributions and nextDistributions
   const nextDistributions = lattice.distributions;
