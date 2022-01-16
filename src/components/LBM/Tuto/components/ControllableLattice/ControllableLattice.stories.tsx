@@ -94,3 +94,56 @@ Lake.args = {
   lattice: lake,
   gravity: 0.02,
 };
+
+const freeFall = makeLatticeAtEquilibirium(7, 8, 1, 0, 0);
+freeFall.flag[37] = Flags.interface;
+freeFall.m[37] = 0.1;
+freeFall.alpha[37] = 0.1;
+freeFall.flag[38] = Flags.interface;
+freeFall.m[38] = 0.1;
+freeFall.alpha[38] = 0.1;
+freeFall.flag[39] = Flags.interface;
+freeFall.m[39] = 0.1;
+freeFall.alpha[39] = 0.1;
+freeFall.flag[30] = Flags.interface;
+freeFall.m[30] = 0.1;
+freeFall.alpha[30] = 0.1;
+freeFall.flag[32] = Flags.interface;
+freeFall.m[32] = 0.1;
+freeFall.alpha[32] = 0.1;
+freeFall.flag[23] = Flags.interface;
+freeFall.m[23] = 0.1;
+freeFall.alpha[23] = 0.1;
+freeFall.flag[24] = Flags.interface;
+freeFall.m[24] = 0.1;
+freeFall.alpha[24] = 0.1;
+freeFall.flag[25] = Flags.interface;
+freeFall.m[25] = 0.1;
+freeFall.alpha[25] = 0.1;
+freeFall.flag[43] = Flags.gas;
+freeFall.flag[44] = Flags.gas;
+freeFall.flag[45] = Flags.gas;
+freeFall.flag[46] = Flags.gas;
+freeFall.flag[47] = Flags.gas;
+freeFall.flag[36] = Flags.gas;
+freeFall.flag[40] = Flags.gas;
+freeFall.flag[29] = Flags.gas;
+freeFall.flag[33] = Flags.gas;
+freeFall.flag[22] = Flags.gas;
+freeFall.flag[26] = Flags.gas;
+freeFall.flag[15] = Flags.gas;
+freeFall.flag[16] = Flags.gas;
+freeFall.flag[17] = Flags.gas;
+freeFall.flag[18] = Flags.gas;
+freeFall.flag[19] = Flags.gas;
+freeFall.flag[8] = Flags.gas;
+freeFall.flag[9] = Flags.gas;
+freeFall.flag[10] = Flags.gas;
+freeFall.flag[11] = Flags.gas;
+freeFall.flag[12] = Flags.gas;
+
+export const FreeFall = Template.bind({});
+FreeFall.args = {
+  lattice: freeFall,
+  gravity: 0.02,
+};

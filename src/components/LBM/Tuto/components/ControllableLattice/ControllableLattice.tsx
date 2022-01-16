@@ -4,7 +4,7 @@ import { Direction } from "../../domain/cell";
 import {
   collide,
   Lattice as TLattice,
-  moveInterface,
+  flagEvolution,
   step,
   stream,
 } from "../../domain/lattice";
@@ -36,8 +36,8 @@ export const ControllableLattice = ({
     stream(lattice);
     setLattice({ ...lattice });
   }, [lattice, setLattice]);
-  const handleClickMoveInterface = useCallback(() => {
-    moveInterface(lattice);
+  const handleClickFlagEvolution = useCallback(() => {
+    flagEvolution(lattice);
     setLattice({ ...lattice });
   }, [lattice, setLattice]);
   const handleClickFullStep = useCallback(() => {
@@ -72,8 +72,8 @@ export const ControllableLattice = ({
         <input type="button" value="stream" onClick={handleClickStream} />
         <input
           type="button"
-          value="move interface"
-          onClick={handleClickMoveInterface}
+          value="flag evolution"
+          onClick={handleClickFlagEvolution}
         />
         <input type="button" value="full step" onClick={handleClickFullStep} />
         <input

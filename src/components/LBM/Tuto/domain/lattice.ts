@@ -116,6 +116,9 @@ export const makeLatticeStructure = (x: number, y: number): Lattice => ({
   alpha: [...Array(x * y)].fill(1),
 });
 
+/**
+ * Create a lattice filled with fluid at equilibirum
+ */
 export const makeLatticeAtEquilibirium = (
   x: number,
   y: number,
@@ -237,7 +240,10 @@ const streamFrom = (
   const iFrom = getIndex(lattice.x, x + dx, y + dy);
   const iTo = getIndex(lattice.x, x, y);
   // (fluid | interface) / barrier
-  if (lattice.flag[iFrom] === Flags.barrier) {
+  if (
+    [Flags.fluid, Flags.interface].includes(lattice.flag[iTo]) &&
+    lattice.flag[iFrom] === Flags.barrier
+  ) {
     return {
       distribution: lattice.distributions[dir][iTo],
       deltaMass: 0,
@@ -245,24 +251,48 @@ const streamFrom = (
     };
   }
   // interface / gas
-  if (lattice.flag[iFrom] === Flags.gas) {
+  if (
+    lattice.flag[iTo] === Flags.interface &&
+    lattice.flag[iFrom] === Flags.gas
+  ) {
+    // TODO Reconstruct all the distributions that satisfies n . ei <= 0
+    // no matter if the distribution comes from a gas or not
+
     return {
-      distribution: gasDistributions[oppositeDir],
+      distribution:
+        gasDistributions[oppositeDir] +
+        gasDistributions[dir] -
+        lattice.distributions[dir][iTo],
       deltaMass: 0,
       oppositeDir,
     };
   }
-  // (fluid / fluid) | (fluid / interface) | (interface / interface)
+  // (fluid / fluid) | (fluid / interface) | (interface / fluid) | (interface / interface)
   const distribution = lattice.distributions[oppositeDir][iFrom];
   const deltaMass =
     lattice.distributions[oppositeDir][iFrom] - lattice.distributions[dir][iTo];
-  // (fluid / fluid) | (fluid / interface)
-  if (lattice.flag[iTo] === Flags.fluid) {
+  // (fluid / fluid) | (fluid / interface) | (interface / fluid)
+  if (
+    (lattice.flag[iTo] === Flags.fluid &&
+      lattice.flag[iFrom] === Flags.fluid) ||
+    (lattice.flag[iTo] === Flags.fluid &&
+      lattice.flag[iFrom] === Flags.interface) ||
+    (lattice.flag[iTo] === Flags.interface &&
+      lattice.flag[iFrom] === Flags.fluid)
+  ) {
     return { distribution, deltaMass, oppositeDir };
   }
   // interface / interface
-  const ci = (1 / 2) * (lattice.alpha[iTo] + lattice.alpha[iFrom]);
-  return { distribution, deltaMass: ci * deltaMass, oppositeDir };
+  if (
+    lattice.flag[iTo] === Flags.interface &&
+    lattice.flag[iFrom] === Flags.interface
+  ) {
+    const ci = (1 / 2) * (lattice.alpha[iTo] + lattice.alpha[iFrom]);
+    return { distribution, deltaMass: ci * deltaMass, oppositeDir };
+  }
+  throw new Error(
+    `Unexpected stream from ${lattice.flag[iFrom]} to ${lattice.flag[iTo]}`,
+  );
 };
 
 /**
@@ -276,6 +306,9 @@ export const stream = (lattice: Lattice): void => {
     if (flag === Flags.gas || flag === Flags.barrier) {
       return;
     }
+
+    // TODO get gas distribution from equation
+
     const gasDistributions = getEquilibriumDistribution(
       1,
       lattice.ux[i],
@@ -332,14 +365,20 @@ export const stream = (lattice: Lattice): void => {
   lattice.nextDistributions = nextDistributions;
 };
 
-export const moveInterface = (lattice: Lattice, beta = 0.001): void => {
+/**
+ * LBM flag evolution step
+ */
+export const flagEvolution = (lattice: Lattice, beta = 0.001): void => {
   forEachCellOfLattice(lattice, (i, x, y) => {
     if (lattice.flag[i] !== Flags.interface) {
       return;
     }
     if (lattice.alpha[i] > 1 + beta) {
       lattice.flag[i] = Flags.fluid;
-      // TODO mass disapears here
+
+      // TODO distribute excess mass to neighbooring cells
+      // const excessMass = lattice.m[i] - lattice.rho[i];
+
       lattice.m[i] = lattice.rho[i];
       lattice.alpha[i] = 1;
 
@@ -353,10 +392,16 @@ export const moveInterface = (lattice: Lattice, beta = 0.001): void => {
           lattice.uy[i2] = lattice.uy[i];
           lattice.m[i2] = 0;
           lattice.alpha[i2] = 0;
+
+          // TODO average the macro around the new cell
+
+          const avgRho = 1;
+          const avgUx = lattice.ux[i];
+          const avgUy = lattice.uy[i];
           const distributions = getEquilibriumDistribution(
-            1,
-            lattice.ux[i],
-            lattice.uy[i],
+            avgRho,
+            avgUx,
+            avgUy,
           );
           Object.values(Direction).forEach(dir => {
             lattice.distributions[dir][i2] = distributions[dir];
@@ -368,7 +413,8 @@ export const moveInterface = (lattice: Lattice, beta = 0.001): void => {
     if (lattice.alpha[i] < -beta) {
       lattice.flag[i] = Flags.gas;
 
-      // TODO mass appears here
+      // TODO distribute negative excess mass to neighbooring cells
+      // const excessMass = lattice.m[i];
 
       Object.values(Direction).forEach(dir => {
         const { x: dx, y: dy } = DirectionRecord[dir];
@@ -379,6 +425,8 @@ export const moveInterface = (lattice: Lattice, beta = 0.001): void => {
       });
     }
   });
+
+  // TODO check that the flag changes did not result in a direct fluid / gas contact
 };
 
 /**
@@ -391,5 +439,5 @@ export const step = (
 ): void => {
   collide(lattice, viscosity, gravity);
   stream(lattice);
-  moveInterface(lattice);
+  flagEvolution(lattice);
 };
