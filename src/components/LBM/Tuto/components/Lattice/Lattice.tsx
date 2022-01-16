@@ -33,7 +33,7 @@ export const Lattice = ({
   const rows = lattice.y;
   const columns = lattice.x;
   const classes = useStyles({ columns, rows });
-  const { distributions, flag, ux, uy } = lattice;
+  const { distributions, flag, ux, uy, rho } = lattice;
   const [selectedCell, setSelectedCell] = useControlledState(
     undefined,
     parentSelectedCell,
@@ -61,6 +61,8 @@ export const Lattice = ({
           flag={flag[i]}
           ux={ux[i]}
           uy={uy[i]}
+          rho={rho[i]}
+          alpha={1}
           distributions={{
             C: distributions.C[i],
             NW: distributions.NW[i],

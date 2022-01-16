@@ -9,6 +9,8 @@ const getU = (ux: number, uy: number) => Math.sqrt(ux ** 2 + uy ** 2);
 type CellStylesProps = {
   ux: number;
   uy: number;
+  alpha: number;
+  rho: number;
   isSelected: boolean;
   flag: Flags;
 };
@@ -36,7 +38,7 @@ const useStyles = createUseStyles({
     )`
         : "",
   },
-  mask: {
+  speed: {
     position: "absolute",
     top: 0,
     left: 0,
@@ -50,12 +52,27 @@ const useStyles = createUseStyles({
       return `rotate(${a}rad)`;
     },
   },
+  fluid: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: ({ alpha }: CellStylesProps) => `${Math.round(alpha * 100)}%`,
+    marginTop: ({ alpha }: CellStylesProps) =>
+      `${100 - Math.round(alpha * 100)}%`,
+    display: "flex",
+    backgroundColor: ({ rho }: CellStylesProps) =>
+      `rgba(68, 80, 170, ${(5 / 2) * rho - 1.75})`,
+    zIndex: -1,
+  },
 });
 
 export type CellProps = {
   flag?: Flags;
   ux: number;
   uy: number;
+  alpha: number;
+  rho: number;
   distributions: Distributions;
   scaleArrow?: number;
   onMouseEnter?: () => void;
@@ -67,13 +84,15 @@ export const Cell = ({
   flag = Flags.fluid,
   ux,
   uy,
+  alpha,
+  rho,
   distributions,
   scaleArrow = 5,
   onMouseEnter,
   onClick,
   isSelected = false,
 }: CellProps): JSX.Element => {
-  const classNames = useStyles({ ux, uy, isSelected, flag });
+  const classNames = useStyles({ ux, uy, isSelected, flag, alpha, rho });
   const getArrowSize = useCallback((d: number) => d * scaleArrow, [scaleArrow]);
   const u = useMemo(() => getU(ux, uy), [ux, uy]);
   return (
@@ -84,6 +103,7 @@ export const Cell = ({
     >
       {flag === Flags.fluid && (
         <>
+          <div className={classNames.fluid}></div>
           <CellPart
             direction={Direction.NW}
             arrowSize={getArrowSize(distributions.NW)}
@@ -120,7 +140,7 @@ export const Cell = ({
             direction={Direction.SE}
             arrowSize={getArrowSize(distributions.SE)}
           />
-          <div className={classNames.mask}>
+          <div className={classNames.speed}>
             <Arrow percentWidth={u / 0.1} color="rgba(255, 0, 0, 0.7)" />
           </div>
         </>

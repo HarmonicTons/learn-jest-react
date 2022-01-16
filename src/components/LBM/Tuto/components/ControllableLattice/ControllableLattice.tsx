@@ -1,6 +1,7 @@
 import { cloneDeep } from "lodash";
 import React, { useCallback, useState } from "react";
 import { collide, Lattice as TLattice, stream } from "../../domain/lattice";
+import useAnimationFrame from "../hooks/useAnimationFrame";
 import { Lattice } from "../Lattice/Lattice";
 import { useControllableLatticeStyles } from "./ControllableLattice.styles";
 
@@ -30,6 +31,19 @@ export const ControllableLattice = ({
   }, [lattice, setLattice]);
 
   const [selectedCell, setSelectedCell] = useState<number | undefined>();
+  const [autoplay, setAutoplay] = useState(false);
+
+  useAnimationFrame(() => {
+    if (autoplay) {
+      collide(lattice, viscosity, gravity);
+      stream(lattice);
+      setLattice({ ...lattice });
+    }
+  }, [autoplay, lattice, setLattice, viscosity, gravity]);
+
+  const handleClickPlay = useCallback(() => {
+    setAutoplay(v => !v);
+  }, [setAutoplay]);
 
   return (
     <div className={classNames.container}>
@@ -42,6 +56,11 @@ export const ControllableLattice = ({
         <input type="button" value="reset" onClick={handleClickReset} />
         <input type="button" value="collide" onClick={handleClickCollide} />
         <input type="button" value="stream" onClick={handleClickStream} />
+        <input
+          type="button"
+          value={autoplay ? "stop" : "play"}
+          onClick={handleClickPlay}
+        />
         {selectedCell && (
           <>
             <div>index: {selectedCell}</div>

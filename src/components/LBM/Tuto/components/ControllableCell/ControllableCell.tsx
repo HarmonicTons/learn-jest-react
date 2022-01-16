@@ -134,7 +134,13 @@ export const ControllableCell = (): JSX.Element => {
   return (
     <div style={{ display: "flex" }}>
       <div style={{ width: "300px", height: "300px" }}>
-        <Cell ux={ux} uy={uy} distributions={distributions} />
+        <Cell
+          ux={ux}
+          uy={uy}
+          distributions={distributions}
+          rho={rho}
+          alpha={1}
+        />
       </div>
       <div style={{ margin: "10px" }}>
         <div>

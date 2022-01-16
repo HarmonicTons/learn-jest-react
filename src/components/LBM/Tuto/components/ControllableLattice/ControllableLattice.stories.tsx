@@ -16,6 +16,8 @@ const Template: ComponentStory<typeof ControllableLattice> = args => (
 
 const lattice1 = makeLatticeAtEquilibirium(6, 5, 1, 0, 0);
 lattice1.distributions.E[14] = 0.25;
+lattice1.ux[14] = 0.122;
+lattice1.rho[14] = 1.139;
 
 export const Lattice1 = Template.bind({});
 Lattice1.args = {
