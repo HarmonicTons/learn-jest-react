@@ -101,7 +101,7 @@ export const Cell = ({
       onMouseEnter={onMouseEnter}
       onClick={onClick}
     >
-      {flag === Flags.fluid && (
+      {[Flags.fluid, Flags.interface].includes(flag) && (
         <>
           <div className={classNames.fluid}></div>
           <CellPart

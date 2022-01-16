@@ -52,12 +52,13 @@ NoSpeed.args = {
   },
 };
 
-export const Interface = Template.bind({});
-Interface.args = {
+export const InterfaceCell = Template.bind({});
+InterfaceCell.args = {
   ux: 0,
   uy: 0,
   alpha: 0.4,
   rho: 1,
+  flag: Flags.interface,
   distributions: {
     NW: 0.028,
     N: 0.111,
