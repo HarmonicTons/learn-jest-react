@@ -86,7 +86,6 @@ export const calculateOmega = (viscosity: number): number =>
   1 / (3 * viscosity + 0.5);
 
 export const collide = (
-  flag: Flags,
   NW: number,
   N: number,
   NE: number,
@@ -102,10 +101,7 @@ export const collide = (
   m: number,
   viscosity: number,
   gravity: number,
-): Distributions | undefined => {
-  if (flag !== Flags.fluid && flag !== Flags.interface) {
-    return;
-  }
+): Distributions => {
   const {
     NW: NWeq,
     N: Neq,

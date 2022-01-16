@@ -1,5 +1,4 @@
 import { cloneDeep } from "lodash";
-import { curry } from "ramda";
 import {
   Flags,
   collide as collideCell,
@@ -8,6 +7,7 @@ import {
   calculateRho,
   calculateUx,
   calculateUy,
+  Distributions,
 } from "./cell";
 
 export const DirectionRecord: Record<
@@ -183,8 +183,13 @@ export const collide = (
 ): void => {
   const { distributions } = lattice;
   forEachCellOfLattice(lattice, i => {
+    if (
+      lattice.flag[i] !== Flags.fluid &&
+      lattice.flag[i] !== Flags.interface
+    ) {
+      return;
+    }
     const collided = collideCell(
-      lattice.flag[i],
       distributions.NW[i],
       distributions.N[i],
       distributions.NE[i],
@@ -201,9 +206,6 @@ export const collide = (
       viscosity,
       gravity,
     );
-    if (!collided) {
-      return;
-    }
     distributions.NW[i] = collided.NW;
     distributions.N[i] = collided.N;
     distributions.NE[i] = collided.NE;
@@ -218,32 +220,49 @@ export const collide = (
 
 /**
  * stream to a cell (x, y) from a direction
- * @param dir direction to stream from
  * @param lattice lattice
  * @param x x coor of cell to stream toward
  * @param y y coor of cell to stream toward
+ * @param dir direction to stream from
  * @returns stream from the cell in the given given direction
  */
-const streamToCellFromDirection = (
+const streamFrom = (
   lattice: Lattice,
   x: number,
   y: number,
+  gasDistributions: Distributions,
   dir: Direction,
-): number => {
+): { distribution: number; deltaMass: number; oppositeDir: Direction } => {
   const { x: dx, y: dy, oppositeDir } = DirectionRecord[dir];
-  const iFrom = getIndex(lattice.x, x - dx, y - dy);
+  const iFrom = getIndex(lattice.x, x + dx, y + dy);
   const iTo = getIndex(lattice.x, x, y);
-  // bounce back on barrier
+  // (fluid | interface) / barrier
   if (lattice.flag[iFrom] === Flags.barrier) {
-    return lattice.distributions[oppositeDir][iTo];
+    return {
+      distribution: lattice.distributions[dir][iTo],
+      deltaMass: 0,
+      oppositeDir,
+    };
   }
-  // fluid/gas interface
+  // interface / gas
   if (lattice.flag[iFrom] === Flags.gas) {
-    // TODO this is wrong
-    const feq = getEquilibriumDistribution(1, 0, 0);
-    return feq[oppositeDir];
+    return {
+      distribution: gasDistributions[oppositeDir],
+      deltaMass: 0,
+      oppositeDir,
+    };
   }
-  return lattice.distributions[dir][iFrom];
+  // (fluid / fluid) | (fluid / interface) | (interface / interface)
+  const distribution = lattice.distributions[oppositeDir][iFrom];
+  const deltaMass =
+    lattice.distributions[oppositeDir][iFrom] - lattice.distributions[dir][iTo];
+  // (fluid / fluid) | (fluid / interface)
+  if (lattice.flag[iTo] === Flags.fluid) {
+    return { distribution, deltaMass, oppositeDir };
+  }
+  // interface / interface
+  const ci = (1 / 2) * (lattice.alpha[iTo] + lattice.alpha[iFrom]);
+  return { distribution, deltaMass: ci * deltaMass, oppositeDir };
 };
 
 /**
@@ -257,10 +276,24 @@ export const stream = (lattice: Lattice): void => {
     if (flag === Flags.gas || flag === Flags.barrier) {
       return;
     }
-    const streamFrom = curry(streamToCellFromDirection)(lattice, x, y);
+    const gasDistributions = getEquilibriumDistribution(
+      1,
+      lattice.ux[i],
+      lattice.uy[i],
+    );
+    let dm = 0;
     Object.values(Direction).forEach(dir => {
-      lattice.nextDistributions[dir][i] = streamFrom(dir);
+      const { distribution, deltaMass, oppositeDir } = streamFrom(
+        lattice,
+        x,
+        y,
+        gasDistributions,
+        dir,
+      );
+      lattice.nextDistributions[oppositeDir][i] = distribution;
+      dm += deltaMass;
     });
+    lattice.m[i] += dm;
     const rho = calculateRho(
       lattice.nextDistributions.NW[i],
       lattice.nextDistributions.N[i],
@@ -273,6 +306,7 @@ export const stream = (lattice: Lattice): void => {
       lattice.nextDistributions.SE[i],
     );
     lattice.rho[i] = rho;
+    lattice.alpha[i] = lattice.m[i] / rho;
     lattice.ux[i] = calculateUx(
       lattice.nextDistributions.NW[i],
       lattice.nextDistributions.NE[i],
@@ -298,6 +332,55 @@ export const stream = (lattice: Lattice): void => {
   lattice.nextDistributions = nextDistributions;
 };
 
+export const moveInterface = (lattice: Lattice, beta = 0.001): void => {
+  forEachCellOfLattice(lattice, (i, x, y) => {
+    if (lattice.flag[i] !== Flags.interface) {
+      return;
+    }
+    if (lattice.alpha[i] > 1 + beta) {
+      lattice.flag[i] = Flags.fluid;
+      // TODO mass disapears here
+      lattice.m[i] = lattice.rho[i];
+      lattice.alpha[i] = 1;
+
+      Object.values(Direction).forEach(dir => {
+        const { x: dx, y: dy } = DirectionRecord[dir];
+        const i2 = getIndex(lattice.x, x + dx, y + dy);
+        if (lattice.flag[i2] === Flags.gas) {
+          lattice.flag[i2] = Flags.interface;
+          lattice.rho[i2] = 1;
+          lattice.ux[i2] = lattice.ux[i];
+          lattice.uy[i2] = lattice.uy[i];
+          lattice.m[i2] = 0;
+          lattice.alpha[i2] = 0;
+          const distributions = getEquilibriumDistribution(
+            1,
+            lattice.ux[i],
+            lattice.uy[i],
+          );
+          Object.values(Direction).forEach(dir => {
+            lattice.distributions[dir][i2] = distributions[dir];
+          });
+        }
+      });
+    }
+
+    if (lattice.alpha[i] < -beta) {
+      lattice.flag[i] = Flags.gas;
+
+      // TODO mass appears here
+
+      Object.values(Direction).forEach(dir => {
+        const { x: dx, y: dy } = DirectionRecord[dir];
+        const i2 = getIndex(lattice.x, x + dx, y + dy);
+        if (lattice.flag[i2] === Flags.fluid) {
+          lattice.flag[i2] = Flags.interface;
+        }
+      });
+    }
+  });
+};
+
 /**
  * LBM full step
  */
@@ -308,4 +391,5 @@ export const step = (
 ): void => {
   collide(lattice, viscosity, gravity);
   stream(lattice);
+  moveInterface(lattice);
 };
