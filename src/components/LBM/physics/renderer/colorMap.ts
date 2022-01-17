@@ -13,7 +13,7 @@ export const getColorMap = (nColors = 400): ColorMap => {
     nColors,
     redList: new Array(nColors + 2),
     greenList: new Array(nColors + 2),
-    blueList: new Array(nColors + 2)
+    blueList: new Array(nColors + 2),
   };
 
   for (let c = 0; c <= nColors; c++) {
@@ -43,7 +43,7 @@ export const getColorMap = (nColors = 400): ColorMap => {
     colorMap.greenList[c] = g;
     colorMap.blueList[c] = b;
   }
-  // balck barriers
+  // black barriers
   colorMap.redList[nColors + 1] = 0;
   colorMap.greenList[nColors + 1] = 0;
   colorMap.blueList[nColors + 1] = 255;

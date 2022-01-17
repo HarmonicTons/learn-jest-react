@@ -3,8 +3,7 @@ import { Story, Meta } from "@storybook/react/types-6-0";
 import { LBM } from "./LBM";
 
 export default {
-  title: "LBM",
-  component: LBM
+  component: LBM,
 } as Meta;
 
 const Template: Story = () => <LBM />;

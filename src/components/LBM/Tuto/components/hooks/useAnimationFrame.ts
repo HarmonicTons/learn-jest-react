@@ -11,6 +11,7 @@ export default (
     return;
   }
 
+  const frame = useRef<any>();
   const last = useRef(performance.now());
   const init = useRef(performance.now());
 
@@ -21,10 +22,11 @@ export default (
     // In seconds ~> you can do ms or anything in userland
     cb({ time, delta });
     last.current = now;
+    frame.current = requestAnimationFrame(animate);
   };
 
   useEffect(() => {
-    const interval = setInterval(animate, 100);
-    return () => clearInterval(interval);
+    frame.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame.current);
   }, deps); // Make sure to change it if the deps change
 };

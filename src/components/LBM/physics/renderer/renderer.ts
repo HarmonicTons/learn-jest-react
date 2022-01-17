@@ -25,7 +25,7 @@ export class Renderer {
     this.context = context;
     this.image = context.createImageData(
       simulator.fluidGrid.xdim,
-      simulator.fluidGrid.ydim
+      simulator.fluidGrid.ydim,
     ); // for direct pixel manipulation (faster than fillRect)
     for (let i = 3; i < this.image.data.length; i += 4)
       this.image.data[i] = 255;
@@ -35,7 +35,7 @@ export class Renderer {
     return Math.round(
       1000 /
         (this.lastTimeSteps.reduce((acc, curr) => acc + curr, 0) /
-          this.lastTimeSteps.length)
+          this.lastTimeSteps.length),
     );
   }
 
@@ -58,7 +58,7 @@ export class Renderer {
       this.context,
       this.image,
       this.canvas,
-      this.fps
+      this.fps,
     );
     const timestamp = Date.now();
     this.lastTimeSteps.push(timestamp - this.lastUpdateTimestamp);

@@ -16,6 +16,7 @@ type CellStylesProps = {
 };
 const useStyles = createUseStyles({
   cell: {
+    overflow: "hidden",
     position: "relative",
     display: "grid",
     gridTemplateColumns: "1fr 1fr 1fr",
@@ -57,12 +58,23 @@ const useStyles = createUseStyles({
     top: 0,
     left: 0,
     width: "100%",
-    height: ({ alpha }: CellStylesProps) => `${Math.round(alpha * 100)}%`,
+    height: "100%",
     marginTop: ({ alpha }: CellStylesProps) =>
       `${100 - Math.round(alpha * 100)}%`,
     display: "flex",
-    backgroundColor: ({ rho }: CellStylesProps) =>
-      `rgba(68, 80, 170, ${(5 / 2) * rho - 1.75})`,
+    opacity: ({ rho }) => (5 / 2) * rho - 1.75,
+    background: ({ flag }: CellStylesProps) => {
+      const color = "rgb(68, 80, 170)";
+      return flag === Flags.interface
+        ? `repeating-linear-gradient(
+      135deg,
+      ${color},
+      ${color} 10%,
+      white 10%,
+      white 15%
+    )`
+        : color;
+    },
     zIndex: -1,
   },
 });

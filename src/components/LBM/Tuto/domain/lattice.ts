@@ -9,6 +9,7 @@ import {
   calculateUy,
   Distributions,
 } from "./cell";
+import { Runner } from "./Runner";
 
 export const DirectionRecord: Record<
   Direction,
@@ -440,4 +441,16 @@ export const step = (
   collide(lattice, viscosity, gravity);
   stream(lattice);
   flagEvolution(lattice);
+};
+
+/**
+ * Run the simulation
+ */
+export const run = (
+  lattice: Lattice,
+  viscosity: number,
+  gravity: number,
+): Runner => {
+  const runner = new Runner(() => step(lattice, viscosity, gravity));
+  return runner;
 };

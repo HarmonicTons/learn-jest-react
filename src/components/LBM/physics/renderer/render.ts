@@ -9,7 +9,7 @@ export enum PlotTypes {
   speed = "speed",
   curl = "curl",
   mass = "mass",
-  alpha = "alpha"
+  alpha = "alpha",
 }
 
 // Color a grid square in the image data array, one pixel at a time (rgb each in range 0 to 255):
@@ -20,7 +20,7 @@ function colorSquare(
   g: number,
   b: number,
   ydim: number,
-  image: ImageData
+  image: ImageData,
 ) {
   //function colorSquare(x, y, cIndex) {		// for some strange reason, this version is quite a bit slower on Chrome
   //let r = redList[cIndex];
@@ -47,7 +47,7 @@ export function render(
   context: CanvasRenderingContext2D,
   image: ImageData,
   canvas: HTMLCanvasElement,
-  fps: number
+  fps: number,
 ): void {
   let cIndex = 0;
   const { nColors } = colorMap;
@@ -65,33 +65,34 @@ export function render(
       } else {
         if (plotType == PlotTypes.rho) {
           cIndex = Math.round(
-            nColors * ((fluidGrid.rho[x + y * xdim] - 1) * 6 * contrast + 0.5)
+            nColors * ((fluidGrid.rho[x + y * xdim] - 1) * 6 * contrast + 0.5),
           );
         } else if (plotType == PlotTypes.ux) {
           cIndex = Math.round(
-            nColors * (fluidGrid.ux[x + y * xdim] * 2 * contrast + 0.5)
+            nColors * (fluidGrid.ux[x + y * xdim] * 2 * contrast + 0.5),
           );
         } else if (plotType == PlotTypes.uy) {
           cIndex = Math.round(
-            nColors * (fluidGrid.uy[x + y * xdim] * 2 * contrast + 0.5)
+            nColors * (fluidGrid.uy[x + y * xdim] * 2 * contrast + 0.5),
           );
         } else if (plotType == PlotTypes.speed) {
           const speed = Math.sqrt(
             fluidGrid.ux[x + y * xdim] * fluidGrid.ux[x + y * xdim] +
-              fluidGrid.uy[x + y * xdim] * fluidGrid.uy[x + y * xdim]
+              fluidGrid.uy[x + y * xdim] * fluidGrid.uy[x + y * xdim],
           );
           cIndex = Math.round(nColors * (speed * 4 * contrast));
         } else if (plotType == PlotTypes.mass) {
           cIndex = Math.round(
-            nColors * ((fluidGrid.m[x + y * xdim] - 1) * 6 * contrast + 0.5)
+            nColors * ((fluidGrid.m[x + y * xdim] - 1) * 6 * contrast + 0.5),
           );
         } else if (plotType == PlotTypes.alpha) {
           cIndex = Math.round(
-            nColors * ((fluidGrid.alpha[x + y * xdim] - 1) * 6 * contrast + 0.5)
+            nColors *
+              ((fluidGrid.alpha[x + y * xdim] - 1) * 6 * contrast + 0.5),
           );
         } else {
           cIndex = Math.round(
-            nColors * (fluidGrid.curl[x + y * xdim] * 5 * contrast + 0.5)
+            nColors * (fluidGrid.curl[x + y * xdim] * 5 * contrast + 0.5),
           );
         }
         if (cIndex < 0) cIndex = 0;
@@ -104,7 +105,7 @@ export function render(
         colorMap.greenList[cIndex],
         colorMap.blueList[cIndex],
         ydim,
-        image
+        image,
       );
     }
   }

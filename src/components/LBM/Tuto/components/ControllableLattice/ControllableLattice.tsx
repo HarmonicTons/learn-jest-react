@@ -7,6 +7,7 @@ import {
   flagEvolution,
   step,
   stream,
+  run,
 } from "../../domain/lattice";
 import useAnimationFrame from "../hooks/useAnimationFrame";
 import { Lattice } from "../Lattice/Lattice";
@@ -18,6 +19,12 @@ export type ControllableLatticeProps = {
   gravity?: number;
 };
 
+const useRender = () => {
+  const [, setN] = useState(0);
+  const render = useCallback(() => setN(v => v + 1), [setN]);
+  return render;
+};
+
 export const ControllableLattice = ({
   lattice: initialLattice,
   viscosity = 0.02,
@@ -26,38 +33,44 @@ export const ControllableLattice = ({
   const classNames = useControllableLatticeStyles();
   const [lattice, setLattice] = useState(cloneDeep(initialLattice));
   const handleClickReset = useCallback(() => {
-    setLattice({ ...initialLattice });
+    setLattice(cloneDeep(initialLattice));
   }, [initialLattice, setLattice]);
+  const render = useRender();
   const handleClickCollide = useCallback(() => {
     collide(lattice, viscosity, gravity);
-    setLattice({ ...lattice });
+    render();
   }, [lattice, viscosity, gravity, setLattice]);
   const handleClickStream = useCallback(() => {
     stream(lattice);
-    setLattice({ ...lattice });
+    render();
   }, [lattice, setLattice]);
   const handleClickFlagEvolution = useCallback(() => {
     flagEvolution(lattice);
-    setLattice({ ...lattice });
+    render();
   }, [lattice, setLattice]);
   const handleClickFullStep = useCallback(() => {
     step(lattice, viscosity, gravity);
-    setLattice({ ...lattice });
+    render();
   }, [lattice, setLattice, viscosity, gravity]);
 
   const [selectedCell, setSelectedCell] = useState<number | undefined>();
   const [autoplay, setAutoplay] = useState(false);
+  const [runner] = useState(run(lattice, viscosity, gravity));
 
   useAnimationFrame(() => {
     if (autoplay) {
-      step(lattice, viscosity, gravity);
-      setLattice({ ...lattice });
+      render();
     }
   }, [autoplay, lattice, setLattice, viscosity, gravity]);
 
   const handleClickPlay = useCallback(() => {
-    setAutoplay(v => !v);
-  }, [setAutoplay]);
+    if (autoplay === false) {
+      runner.start();
+    } else {
+      runner.stop();
+    }
+    setAutoplay(!autoplay);
+  }, [autoplay, setAutoplay]);
 
   return (
     <div className={classNames.container}>
