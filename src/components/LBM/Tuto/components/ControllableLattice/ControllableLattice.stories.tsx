@@ -34,6 +34,20 @@ Lattice2.args = {
   gravity: 0,
 };
 
+const lattice2bis = makeLatticeAtEquilibirium(6, 5, 1, 0.1, 0);
+lattice2bis.flag[7] = Flags.source;
+lattice2bis.flag[13] = Flags.source;
+lattice2bis.flag[19] = Flags.source;
+lattice2bis.flag[10] = Flags.source;
+lattice2bis.flag[16] = Flags.source;
+lattice2bis.flag[22] = Flags.source;
+
+export const Lattice2bis = Template.bind({});
+Lattice2bis.args = {
+  lattice: lattice2bis,
+  gravity: 0,
+};
+
 const lattice3 = makeLatticeAtEquilibirium(6, 5, 1, 0, 0);
 
 export const Lattice3 = Template.bind({});

@@ -15,6 +15,7 @@ export enum Flags {
   fluid = "fluid",
   gas = "gas",
   interface = "interface",
+  source = "source",
 }
 
 export type Distributions = Record<Direction, number>;

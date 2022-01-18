@@ -113,7 +113,7 @@ export const Cell = ({
       onMouseEnter={onMouseEnter}
       onClick={onClick}
     >
-      {[Flags.fluid, Flags.interface].includes(flag) && (
+      {[Flags.fluid, Flags.interface, Flags.source].includes(flag) && (
         <>
           <div className={classNames.fluid}></div>
           <CellPart
@@ -153,7 +153,14 @@ export const Cell = ({
             arrowSize={getArrowSize(distributions.SE)}
           />
           <div className={classNames.speed}>
-            <Arrow percentWidth={u / 0.1} color="rgba(255, 0, 0, 0.7)" />
+            <Arrow
+              percentWidth={u / 0.1}
+              color={
+                flag === Flags.source
+                  ? "rgba(0, 255, 0, 0.7)"
+                  : "rgba(255, 0, 0, 0.7)"
+              }
+            />
           </div>
         </>
       )}

@@ -77,6 +77,7 @@ export type Lattice = {
   uy: Array<number>;
   m: Array<number>;
   alpha: Array<number>;
+  curl: Array<number>;
   // meta
   flag: Array<Flags>;
 };
@@ -112,9 +113,10 @@ export const makeLatticeStructure = (x: number, y: number): Lattice => ({
   rho: [...Array(x * y)].fill(0),
   ux: [...Array(x * y)].fill(0),
   uy: [...Array(x * y)].fill(0),
-  flag: [...Array(x * y)].fill(Flags.barrier),
   m: [...Array(x * y)].fill(0),
   alpha: [...Array(x * y)].fill(1),
+  curl: [...Array(x * y)].fill(0),
+  flag: [...Array(x * y)].fill(Flags.barrier),
 });
 
 /**
@@ -230,7 +232,7 @@ export const collide = (
  * @param dir direction to stream from
  * @returns stream from the cell in the given given direction
  */
-const streamFrom = (
+const streamFromDirection = (
   lattice: Lattice,
   x: number,
   y: number,
@@ -240,10 +242,15 @@ const streamFrom = (
   const { x: dx, y: dy, oppositeDir } = DirectionRecord[dir];
   const iFrom = getIndex(lattice.x, x + dx, y + dy);
   const iTo = getIndex(lattice.x, x, y);
+  // consider sources as fluid
+  const flagTo =
+    lattice.flag[iTo] === Flags.source ? Flags.fluid : lattice.flag[iTo];
+  const flagFrom =
+    lattice.flag[iFrom] === Flags.source ? Flags.fluid : lattice.flag[iFrom];
   // (fluid | interface) / barrier
   if (
-    [Flags.fluid, Flags.interface].includes(lattice.flag[iTo]) &&
-    lattice.flag[iFrom] === Flags.barrier
+    [Flags.fluid, Flags.interface].includes(flagTo) &&
+    flagFrom === Flags.barrier
   ) {
     return {
       distribution: lattice.distributions[dir][iTo],
@@ -252,10 +259,7 @@ const streamFrom = (
     };
   }
   // interface / gas
-  if (
-    lattice.flag[iTo] === Flags.interface &&
-    lattice.flag[iFrom] === Flags.gas
-  ) {
+  if (flagTo === Flags.interface && flagFrom === Flags.gas) {
     // TODO Reconstruct all the distributions that satisfies n . ei <= 0
     // no matter if the distribution comes from a gas or not
 
@@ -274,26 +278,18 @@ const streamFrom = (
     lattice.distributions[oppositeDir][iFrom] - lattice.distributions[dir][iTo];
   // (fluid / fluid) | (fluid / interface) | (interface / fluid)
   if (
-    (lattice.flag[iTo] === Flags.fluid &&
-      lattice.flag[iFrom] === Flags.fluid) ||
-    (lattice.flag[iTo] === Flags.fluid &&
-      lattice.flag[iFrom] === Flags.interface) ||
-    (lattice.flag[iTo] === Flags.interface &&
-      lattice.flag[iFrom] === Flags.fluid)
+    (flagTo === Flags.fluid && flagFrom === Flags.fluid) ||
+    (flagTo === Flags.fluid && flagFrom === Flags.interface) ||
+    (flagTo === Flags.interface && flagFrom === Flags.fluid)
   ) {
     return { distribution, deltaMass, oppositeDir };
   }
   // interface / interface
-  if (
-    lattice.flag[iTo] === Flags.interface &&
-    lattice.flag[iFrom] === Flags.interface
-  ) {
+  if (flagTo === Flags.interface && flagFrom === Flags.interface) {
     const ci = (1 / 2) * (lattice.alpha[iTo] + lattice.alpha[iFrom]);
     return { distribution, deltaMass: ci * deltaMass, oppositeDir };
   }
-  throw new Error(
-    `Unexpected stream from ${lattice.flag[iFrom]} to ${lattice.flag[iTo]}`,
-  );
+  throw new Error(`Unexpected stream from ${flagFrom} to ${flagTo}`);
 };
 
 /**
@@ -303,8 +299,8 @@ export const stream = (lattice: Lattice): void => {
   // stream to each cell
   forEachCellOfLattice(lattice, (i, x, y) => {
     const flag = lattice.flag[i];
-    // ignore gas and barrier cells
-    if (flag === Flags.gas || flag === Flags.barrier) {
+    // ignore everything but interface or fluid cells
+    if ([Flags.fluid, Flags.interface].includes(flag) === false) {
       return;
     }
 
@@ -317,7 +313,7 @@ export const stream = (lattice: Lattice): void => {
     );
     let dm = 0;
     Object.values(Direction).forEach(dir => {
-      const { distribution, deltaMass, oppositeDir } = streamFrom(
+      const { distribution, deltaMass, oppositeDir } = streamFromDirection(
         lattice,
         x,
         y,
@@ -431,6 +427,20 @@ export const flagEvolution = (lattice: Lattice, beta = 0.001): void => {
 };
 
 /**
+ * Optionnaly compute curl to render it
+ */
+export const computeCurl = (lattice: Lattice): void => {
+  const getI = (x: number, y: number) => getIndex(lattice.x, x, y);
+  forEachCellOfLattice(lattice, (i, x, y) => {
+    lattice.curl[i] =
+      lattice.uy[getI(x + 1, y)] -
+      lattice.uy[getI(x - 1, y)] -
+      lattice.ux[getI(x, y + 1)] +
+      lattice.ux[getI(x, y - 1)];
+  });
+};
+
+/**
  * LBM full step
  */
 export const step = (
@@ -441,6 +451,8 @@ export const step = (
   collide(lattice, viscosity, gravity);
   stream(lattice);
   flagEvolution(lattice);
+  // optionnal
+  computeCurl(lattice);
 };
 
 /**
@@ -451,6 +463,6 @@ export const run = (
   viscosity: number,
   gravity: number,
 ): Runner => {
-  const runner = new Runner(() => step(lattice, viscosity, gravity));
+  const runner = new Runner(() => step(lattice, viscosity, gravity), 60);
   return runner;
 };
