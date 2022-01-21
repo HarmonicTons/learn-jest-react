@@ -53,6 +53,14 @@ const useStyles = createUseStyles({
       return `rotate(${a}rad)`;
     },
   },
+  "@keyframes anim": {
+    "0%": {
+      transform: "rotate(0deg)",
+    },
+    "100%": {
+      transform: "rotate(360deg)",
+    },
+  },
   fluid: {
     position: "absolute",
     top: 0,
@@ -76,6 +84,19 @@ const useStyles = createUseStyles({
         : color;
     },
     zIndex: -1,
+    "&:before": {
+      content: '""',
+      width: "400%",
+      height: "400%",
+      backgroundColor: "white",
+      position: "absolute",
+      top: "-400%",
+      left: "-150%",
+      borderRadius: "45%",
+      animation: "$anim 12s linear infinite",
+      display: ({ flag }: CellStylesProps) =>
+        flag !== Flags.interface ? "none" : null,
+    },
   },
 });
 
