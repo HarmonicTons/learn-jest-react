@@ -35,7 +35,7 @@ export const CanvasLattice = ({
     const image = getImage(context, lattice.x, lattice.y);
     const colorMap = getColorMap();
     const contrast = 1;
-    const plotType = PlotTypes.curl;
+    const plotType = PlotTypes.rho;
     const _renderer = runRendering(
       colorMap,
       contrast,

@@ -97,7 +97,15 @@ for (let x = 1; x < 16; x++) {
   damBreak.flag[getIndex(damBreak.x, x, 15)] = Flags.interface;
 }
 
+for (let y = 5; y < 16; y++) {
+  damBreak.flag[getIndex(damBreak.x, 15, y)] = Flags.barrier;
+}
+for (let y = 1; y < 5; y++) {
+  damBreak.flag[getIndex(damBreak.x, 32, y)] = Flags.barrier;
+}
+
 export const DamBreak = Template.bind({});
 DamBreak.args = {
   lattice: damBreak,
+  gravity: 0.001,
 };

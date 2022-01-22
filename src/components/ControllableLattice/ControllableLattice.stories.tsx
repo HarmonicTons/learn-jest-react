@@ -161,3 +161,27 @@ FreeFall.args = {
   lattice: freeFall,
   gravity: 0.02,
 };
+
+const inversed = makeLatticeAtEquilibirium(6, 5, 1, 0, 0);
+inversed.flag[19] = Flags.interface;
+inversed.flag[20] = Flags.interface;
+inversed.flag[21] = Flags.interface;
+inversed.flag[22] = Flags.interface;
+inversed.flag[7] = Flags.interface;
+inversed.m[7] = 0.5;
+inversed.alpha[7] = 0.5;
+inversed.flag[8] = Flags.interface;
+inversed.m[8] = 0.5;
+inversed.alpha[8] = 0.5;
+inversed.flag[9] = Flags.interface;
+inversed.m[9] = 0.5;
+inversed.alpha[9] = 0.5;
+inversed.flag[10] = Flags.interface;
+inversed.m[10] = 0.5;
+inversed.alpha[10] = 0.5;
+
+export const Inversed = Template.bind({});
+Inversed.args = {
+  lattice: inversed,
+  gravity: 0.02,
+};

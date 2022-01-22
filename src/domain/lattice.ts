@@ -77,6 +77,7 @@ export type Lattice = {
   m: Array<number>;
   alpha: Array<number>;
   curl: Array<number>;
+  totalMass: number;
   // meta
   flag: Array<Flags>;
 };
@@ -115,6 +116,7 @@ export const makeLatticeStructure = (x: number, y: number): Lattice => ({
   m: [...Array(x * y)].fill(0),
   alpha: [...Array(x * y)].fill(1),
   curl: [...Array(x * y)].fill(0),
+  totalMass: 0,
   flag: [...Array(x * y)].fill(Flags.barrier),
 });
 
@@ -254,19 +256,19 @@ const streamFromDirection = (
     lattice.flag[iTo] === Flags.source ? Flags.fluid : lattice.flag[iTo];
   const flagFrom =
     lattice.flag[iFrom] === Flags.source ? Flags.fluid : lattice.flag[iFrom];
-  // (fluid | interface) / barrier
-  if (
-    [Flags.fluid, Flags.interface].includes(flagTo) &&
-    flagFrom === Flags.barrier
-  ) {
+  // fluid / barrier
+  if (flagTo === Flags.fluid && flagFrom === Flags.barrier) {
     return {
       distribution: lattice.distributions[dir][iTo],
       deltaMass: 0,
       oppositeDir,
     };
   }
-  // interface / gas
-  if (flagTo === Flags.interface && flagFrom === Flags.gas) {
+  // (interface / gas) | (interface / barrier)
+  if (
+    flagTo === Flags.interface &&
+    (flagFrom === Flags.gas || flagFrom === Flags.barrier)
+  ) {
     // TODO Reconstruct all the distributions that satisfies n . ei <= 0
     // no matter if the distribution comes from a gas or not
 
@@ -311,7 +313,7 @@ export const stream = (lattice: Lattice): void => {
       return;
     }
 
-    // TODO get gas distribution from equation
+    // TODO get gas density from equation
 
     const gasDistributions = getEquilibriumDistribution(
       1,
@@ -438,13 +440,16 @@ export const flagEvolution = (lattice: Lattice, beta = 0.001): void => {
  */
 export const computeCurl = (lattice: Lattice): void => {
   const getI = (x: number, y: number) => getIndex(lattice.x, x, y);
+  let totalMass = 0;
   forEachCellOfLattice(lattice, (i, x, y) => {
+    totalMass += lattice.m[i];
     lattice.curl[i] =
       lattice.uy[getI(x + 1, y)] -
       lattice.uy[getI(x - 1, y)] -
       lattice.ux[getI(x, y + 1)] +
       lattice.ux[getI(x, y - 1)];
   });
+  lattice.totalMass = totalMass;
 };
 
 /**
