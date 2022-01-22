@@ -132,6 +132,7 @@ export function render(
   //if (pixelGraphics)
   createImageBitmap(image).then(function(imgBitmap) {
     context.drawImage(imgBitmap, 0, 0, canvas.width, canvas.height);
+    context.fillStyle = "#ffffff";
     context.fillText(`UPS: ${ups}`, 5, 10);
     context.fillText(`FPS: ${fps}`, 5, 25);
   });
@@ -145,8 +146,8 @@ export const run = (
   context: CanvasRenderingContext2D,
   image: ImageData,
   canvas: HTMLCanvasElement,
-  fps: number,
-  ups: number,
+  getFps: () => number,
+  getUps: () => number,
 ): Runner => {
   const runner = new Runner(
     () =>
@@ -158,8 +159,8 @@ export const run = (
         context,
         image,
         canvas,
-        fps,
-        ups,
+        getFps(),
+        getUps(),
       ),
     60,
     true,

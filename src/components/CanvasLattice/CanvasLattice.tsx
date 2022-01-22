@@ -36,19 +36,18 @@ export const CanvasLattice = ({
     const colorMap = getColorMap();
     const contrast = 1;
     const plotType = PlotTypes.curl;
-    setRenderer(
-      runRendering(
-        colorMap,
-        contrast,
-        plotType,
-        lattice,
-        context,
-        image,
-        canvas,
-        0,
-        0,
-      ),
+    const _renderer = runRendering(
+      colorMap,
+      contrast,
+      plotType,
+      lattice,
+      context,
+      image,
+      canvas,
+      () => _renderer.ups,
+      () => runner.ups,
     );
+    setRenderer(_renderer);
   }, []);
 
   useEffect(() => {

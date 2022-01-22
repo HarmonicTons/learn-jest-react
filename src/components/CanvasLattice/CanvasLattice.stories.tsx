@@ -52,7 +52,7 @@ Lattice3.args = {
   gravity: 0,
 };
 
-const lattice3bis = makeLatticeAtEquilibirium(80, 32, 1, 0.1, 0);
+const lattice3bis = makeLatticeAtEquilibirium(200, 80, 1, 0.1, 0);
 // Create a simple linear "wall" barrier (intentionally a little offset from center):
 const barrierSizeBis = 8;
 for (
@@ -73,6 +73,7 @@ export const Lattice3bis = Template.bind({});
 Lattice3bis.args = {
   lattice: lattice3bis,
   gravity: 0,
+  viscosity: 0.02,
 };
 
 const damBreak = makeLatticeAtEquilibirium(80, 32, 1, 0, 0);

@@ -1,4 +1,3 @@
-import { cloneDeep } from "lodash";
 import {
   Flags,
   collide as collideCell,
@@ -471,6 +470,6 @@ export const run = (
   viscosity: number,
   gravity: number,
 ): Runner => {
-  const runner = new Runner(() => step(lattice, viscosity, gravity), 60);
+  const runner = new Runner(() => step(lattice, viscosity, gravity), 1000);
   return runner;
 };
