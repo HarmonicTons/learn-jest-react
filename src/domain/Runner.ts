@@ -1,13 +1,19 @@
+import { uniqueId } from "lodash";
+
 export class Runner {
   public isRunning = false;
+  public id: string;
   private lastTimeSteps: number[] = [];
   private lastUpdateTimestamp = 0;
   private maxUps: number;
   private callback: () => void;
+  private animation: boolean;
 
-  constructor(callback: () => void, maxUps = 1000) {
+  constructor(callback: () => void, maxUps = 1000, animation = false) {
+    this.id = uniqueId();
     this.callback = callback;
     this.maxUps = maxUps;
+    this.animation = animation;
   }
 
   get ups(): number {
@@ -41,7 +47,9 @@ export class Runner {
     }
     this.lastUpdateTimestamp = timestamp;
     if (this.isRunning) {
-      if (this.maxUps >= 200) {
+      if (this.animation) {
+        requestAnimationFrame(() => this.loop());
+      } else if (this.maxUps >= 200) {
         setImmediate(() => this.loop());
       } else {
         setTimeout(() => this.loop(), 1000 / this.maxUps);

@@ -1,2 +1,1 @@
-export * from "./LBM/LBM";
-export * from "./FindRepo/FindRepo";
+export * from "./ControllableLattice/ControllableLattice";

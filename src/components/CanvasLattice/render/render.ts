@@ -162,6 +162,7 @@ export const run = (
         ups,
       ),
     60,
+    true,
   );
   return runner;
 };
