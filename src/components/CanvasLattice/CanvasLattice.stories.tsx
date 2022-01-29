@@ -3,7 +3,7 @@ import React from "react";
 import { ComponentStory, ComponentMeta } from "@storybook/react";
 
 import { CanvasLattice } from "./CanvasLattice";
-import { getIndex, makeLatticeAtEquilibirium } from "../../domain/lattice";
+import { getIndex, makeLatticeAtEquilibrium } from "../../domain/lattice";
 import { Flags } from "../../domain/cell";
 
 export default {
@@ -14,7 +14,7 @@ const Template: ComponentStory<typeof CanvasLattice> = args => (
   <CanvasLattice {...args} />
 );
 
-const lattice1 = makeLatticeAtEquilibirium(6, 5, 1, 0, 0);
+const lattice1 = makeLatticeAtEquilibrium(6, 5, 1, 0, 0);
 lattice1.distributions.E[14] = 0.25;
 lattice1.ux[14] = 0.122;
 lattice1.rho[14] = 1.139;
@@ -26,7 +26,7 @@ Lattice1.args = {
   gravity: 0,
 };
 
-const lattice2 = makeLatticeAtEquilibirium(6, 5, 1, 0.1, 0);
+const lattice2 = makeLatticeAtEquilibrium(6, 5, 1, 0.1, 0);
 
 export const Lattice2 = Template.bind({});
 Lattice2.args = {
@@ -34,7 +34,7 @@ Lattice2.args = {
   gravity: 0,
 };
 
-const lattice3 = makeLatticeAtEquilibirium(80, 32, 1, 0.1, 0);
+const lattice3 = makeLatticeAtEquilibrium(80, 32, 1, 0.1, 0);
 // Create a simple linear "wall" barrier (intentionally a little offset from center):
 const barrierSize = 8;
 for (
@@ -52,7 +52,7 @@ Lattice3.args = {
   gravity: 0,
 };
 
-const lattice3bis = makeLatticeAtEquilibirium(200, 80, 1, 0.1, 0);
+const lattice3bis = makeLatticeAtEquilibrium(200, 80, 1, 0.1, 0);
 // Create a simple linear "wall" barrier (intentionally a little offset from center):
 const barrierSizeBis = 8;
 for (
@@ -76,7 +76,7 @@ Lattice3bis.args = {
   viscosity: 0.02,
 };
 
-const damBreak = makeLatticeAtEquilibirium(80, 32, 1, 0, 0);
+const damBreak = makeLatticeAtEquilibrium(80, 32, 1, 0, 0);
 
 for (let y = 16; y < 31; y++) {
   for (let x = 1; x <= 16; x++) {

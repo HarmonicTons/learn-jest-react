@@ -3,7 +3,7 @@ import React from "react";
 import { ComponentStory, ComponentMeta } from "@storybook/react";
 
 import { Lattice } from "./Lattice";
-import { makeLatticeAtEquilibirium } from "../../domain/lattice";
+import { makeLatticeAtEquilibrium } from "../../domain/lattice";
 
 export default {
   component: Lattice,
@@ -13,10 +13,10 @@ const Template: ComponentStory<typeof Lattice> = args => <Lattice {...args} />;
 
 export const FoorByFoor = Template.bind({});
 FoorByFoor.args = {
-  lattice: makeLatticeAtEquilibirium(4, 4, 1, 0, 0),
+  lattice: makeLatticeAtEquilibrium(4, 4, 1, 0, 0),
 };
 
 export const SixByFoor = Template.bind({});
 SixByFoor.args = {
-  lattice: makeLatticeAtEquilibirium(6, 4, 1, 0, 0),
+  lattice: makeLatticeAtEquilibrium(6, 4, 1, 0, 0),
 };

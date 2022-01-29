@@ -3,7 +3,7 @@ import React from "react";
 import { ComponentStory, ComponentMeta } from "@storybook/react";
 
 import { ControllableLattice } from "./ControllableLattice";
-import { makeLatticeAtEquilibirium } from "../../domain/lattice";
+import { makeLatticeAtEquilibrium } from "../../domain/lattice";
 import { Flags } from "../../domain/cell";
 
 export default {
@@ -14,7 +14,7 @@ const Template: ComponentStory<typeof ControllableLattice> = args => (
   <ControllableLattice {...args} />
 );
 
-const lattice1 = makeLatticeAtEquilibirium(6, 5, 1, 0, 0);
+const lattice1 = makeLatticeAtEquilibrium(6, 5, 1, 0, 0);
 lattice1.distributions.E[14] = 0.25;
 lattice1.ux[14] = 0.122;
 lattice1.rho[14] = 1.139;
@@ -26,7 +26,7 @@ Lattice1.args = {
   gravity: 0,
 };
 
-const lattice2 = makeLatticeAtEquilibirium(6, 5, 1, 0.1, 0);
+const lattice2 = makeLatticeAtEquilibrium(6, 5, 1, 0.1, 0);
 
 export const Lattice2 = Template.bind({});
 Lattice2.args = {
@@ -34,7 +34,7 @@ Lattice2.args = {
   gravity: 0,
 };
 
-const lattice2bis = makeLatticeAtEquilibirium(6, 5, 1, 0.1, 0);
+const lattice2bis = makeLatticeAtEquilibrium(6, 5, 1, 0.1, 0);
 lattice2bis.flag[7] = Flags.source;
 lattice2bis.flag[13] = Flags.source;
 lattice2bis.flag[19] = Flags.source;
@@ -48,7 +48,7 @@ Lattice2bis.args = {
   gravity: 0,
 };
 
-const lattice3 = makeLatticeAtEquilibirium(6, 5, 1, 0, 0);
+const lattice3 = makeLatticeAtEquilibrium(6, 5, 1, 0, 0);
 
 export const Lattice3 = Template.bind({});
 Lattice3.args = {
@@ -56,7 +56,7 @@ Lattice3.args = {
   gravity: 0.02,
 };
 
-const lattice4 = makeLatticeAtEquilibirium(6, 5, 1, 0.1, 0);
+const lattice4 = makeLatticeAtEquilibrium(6, 5, 1, 0.1, 0);
 lattice4.flag[15] = Flags.barrier;
 
 export const Lattice4 = Template.bind({});
@@ -65,7 +65,7 @@ Lattice4.args = {
   gravity: 0.02,
 };
 
-const damBreak = makeLatticeAtEquilibirium(6, 5, 1, 0, 0);
+const damBreak = makeLatticeAtEquilibrium(6, 5, 1, 0, 0);
 damBreak.flag[9] = Flags.interface;
 damBreak.m[9] = 0.95;
 damBreak.alpha[9] = 0.95;
@@ -85,7 +85,7 @@ DamBreak.args = {
   gravity: 0.02,
 };
 
-const lake = makeLatticeAtEquilibirium(6, 5, 1, 0, 0);
+const lake = makeLatticeAtEquilibrium(6, 5, 1, 0, 0);
 lake.flag[13] = Flags.interface;
 lake.m[13] = 0.5;
 lake.alpha[13] = 0.5;
@@ -109,7 +109,7 @@ Lake.args = {
   gravity: 0.02,
 };
 
-const freeFall = makeLatticeAtEquilibirium(7, 8, 1, 0, 0);
+const freeFall = makeLatticeAtEquilibrium(7, 8, 1, 0, 0);
 freeFall.flag[37] = Flags.interface;
 freeFall.m[37] = 0.1;
 freeFall.alpha[37] = 0.1;
@@ -162,7 +162,7 @@ FreeFall.args = {
   gravity: 0.02,
 };
 
-const inversed = makeLatticeAtEquilibirium(6, 5, 1, 0, 0);
+const inversed = makeLatticeAtEquilibrium(6, 5, 1, 0, 0);
 inversed.flag[19] = Flags.interface;
 inversed.flag[20] = Flags.interface;
 inversed.flag[21] = Flags.interface;

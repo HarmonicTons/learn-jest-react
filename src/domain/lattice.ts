@@ -123,7 +123,7 @@ export const makeLatticeStructure = (x: number, y: number): Lattice => ({
 /**
  * Create a lattice filled with fluid at equilibirum
  */
-export const makeLatticeAtEquilibirium = (
+export const makeLatticeAtEquilibrium = (
   x: number,
   y: number,
   rho: number,
