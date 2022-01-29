@@ -1,3 +1,5 @@
+import { clamp } from "lodash";
+
 export enum Direction {
   NW = "NW",
   N = "N",
@@ -145,14 +147,14 @@ export const collide = (
   } = getGravityForce(gravity, rho, ux, uy);
   const omega = calculateOmega(viscosity);
   return {
-    C: C + omega * (Ceq - C) + Cg,
-    E: E + omega * (Eeq - E) + Eg,
-    W: W + omega * (Weq - W) + Wg,
-    N: N + omega * (Neq - N) + Ng,
-    S: S + omega * (Seq - S) + Sg,
-    NE: NE + omega * (NEeq - NE) + NEg,
-    SE: SE + omega * (SEeq - SE) + SEg,
-    NW: NW + omega * (NWeq - NW) + NWg,
-    SW: SW + omega * (SWeq - SW) + SWg,
+    C: clamp(C + omega * (Ceq - C) + Cg, 0, 8 / 9),
+    E: clamp(E + omega * (Eeq - E) + Eg, 0, 2 / 9),
+    W: clamp(W + omega * (Weq - W) + Wg, 0, 2 / 9),
+    N: clamp(N + omega * (Neq - N) + Ng, 0, 2 / 9),
+    S: clamp(S + omega * (Seq - S) + Sg, 0, 2 / 9),
+    NE: clamp(NE + omega * (NEeq - NE) + NEg, 0, 1 / 18),
+    SE: clamp(SE + omega * (SEeq - SE) + SEg, 0, 1 / 18),
+    NW: clamp(NW + omega * (NWeq - NW) + NWg, 0, 1 / 18),
+    SW: clamp(SW + omega * (SWeq - SW) + SWg, 0, 1 / 18),
   };
 };

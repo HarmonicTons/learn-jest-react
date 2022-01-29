@@ -94,6 +94,7 @@ export const ControllableLattice = ({
           value={autoplay ? "stop" : "play"}
           onClick={handleClickPlay}
         />
+        <div>{lattice.totalMass.toFixed(3)}</div>
         {selectedCell && (
           <>
             <div>index: {selectedCell}</div>
