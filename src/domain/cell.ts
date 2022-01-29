@@ -83,6 +83,25 @@ export const getEquilibriumDistribution = (
   };
 };
 
+export const getGravityForce = (
+  g: number,
+  rho: number,
+  ux: number,
+  uy: number,
+): Distributions => {
+  return {
+    C: (4 / 3) * rho * g * uy,
+    E: (1 / 3) * rho * g * uy,
+    N: (-1 / 3) * rho * g * (2 * uy + 1),
+    W: (1 / 3) * rho * g * uy,
+    S: (-1 / 3) * rho * g * (2 * uy - 1),
+    NE: (-1 / 12) * rho * g * (3 * ux + 2 * uy + 1),
+    NW: (-1 / 12) * rho * g * (-3 * ux + 2 * uy + 1),
+    SW: (-1 / 12) * rho * g * (3 * ux + 2 * uy - 1),
+    SE: (1 / 12) * rho * g * (3 * ux - 2 * uy + 1),
+  };
+};
+
 export const calculateOmega = (viscosity: number): number =>
   1 / (3 * viscosity + 0.5);
 
@@ -99,7 +118,6 @@ export const collide = (
   rho: number,
   ux: number,
   uy: number,
-  m: number,
   viscosity: number,
   gravity: number,
 ): Distributions => {
@@ -114,16 +132,27 @@ export const collide = (
     S: Seq,
     SE: SEeq,
   } = getEquilibriumDistribution(rho, ux, uy);
+  const {
+    NW: NWg,
+    N: Ng,
+    NE: NEg,
+    W: Wg,
+    C: Cg,
+    E: Eg,
+    SW: SWg,
+    S: Sg,
+    SE: SEg,
+  } = getGravityForce(gravity, rho, ux, uy);
   const omega = calculateOmega(viscosity);
   return {
-    C: C + omega * (Ceq - C),
-    E: E + omega * (Eeq - E),
-    W: W + omega * (Weq - W),
-    N: N + omega * (Neq - N) - (gravity * m) / 9,
-    S: S + omega * (Seq - S) + (gravity * m) / 9,
-    NE: NE + omega * (NEeq - NE) - (gravity * m) / 36,
-    SE: SE + omega * (SEeq - SE) + (gravity * m) / 36,
-    NW: NW + omega * (NWeq - NW) - (gravity * m) / 36,
-    SW: SW + omega * (SWeq - SW) + (gravity * m) / 36,
+    C: C + omega * (Ceq - C) + Cg,
+    E: E + omega * (Eeq - E) + Eg,
+    W: W + omega * (Weq - W) + Wg,
+    N: N + omega * (Neq - N) + Ng,
+    S: S + omega * (Seq - S) + Sg,
+    NE: NE + omega * (NEeq - NE) + NEg,
+    SE: SE + omega * (SEeq - SE) + SEg,
+    NW: NW + omega * (NWeq - NW) + NWg,
+    SW: SW + omega * (SWeq - SW) + SWg,
   };
 };

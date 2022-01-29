@@ -217,7 +217,6 @@ export const collide = (
       lattice.rho[i],
       lattice.ux[i],
       lattice.uy[i],
-      lattice.m[i],
       viscosity,
       gravity,
     );
