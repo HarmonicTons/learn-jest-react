@@ -5,6 +5,7 @@ import { ComponentStory, ComponentMeta } from "@storybook/react";
 import { CanvasLattice } from "./CanvasLattice";
 import { getIndex, makeLatticeAtEquilibrium } from "../../domain/lattice";
 import { Flags } from "../../domain/cell";
+import { PlotTypes } from "./render/render";
 
 export default {
   component: CanvasLattice,
@@ -14,98 +15,119 @@ const Template: ComponentStory<typeof CanvasLattice> = args => (
   <CanvasLattice {...args} />
 );
 
-const lattice1 = makeLatticeAtEquilibrium(6, 5, 1, 0, 0);
-lattice1.distributions.E[14] = 0.25;
-lattice1.ux[14] = 0.122;
-lattice1.rho[14] = 1.139;
-lattice1.m[14] = 1.139;
-
-export const Lattice1 = Template.bind({});
-Lattice1.args = {
-  lattice: lattice1,
-  gravity: 0,
-};
-
-const lattice2 = makeLatticeAtEquilibrium(6, 5, 1, 0.1, 0);
-
-export const Lattice2 = Template.bind({});
-Lattice2.args = {
-  lattice: lattice2,
-  gravity: 0,
-};
-
-const lattice3 = makeLatticeAtEquilibrium(80, 32, 1, 0.1, 0);
-// Create a simple linear "wall" barrier (intentionally a little offset from center):
+/**
+ * BUMP
+ */
+const bump = makeLatticeAtEquilibrium(80, 32, 1, 0.1, 0);
 const barrierSize = 8;
 for (
-  let y = lattice3.y / 2 - barrierSize;
-  y <= lattice3.y / 2 + barrierSize;
+  let y = bump.y / 2 - barrierSize;
+  y <= bump.y / 2 + barrierSize;
   y++
 ) {
   const x = 20;
-  lattice3.flag[x + y * lattice3.x] = Flags.barrier;
+  bump.flag[x + y * bump.x] = Flags.barrier;
 }
 
-export const Lattice3 = Template.bind({});
-Lattice3.args = {
-  lattice: lattice3,
+export const Bump = Template.bind({});
+Bump.args = {
+  lattice: bump,
   gravity: 0,
+  plotType: PlotTypes.rho,
 };
 
-const lattice3bis = makeLatticeAtEquilibrium(200, 80, 1, 0.1, 0);
-// Create a simple linear "wall" barrier (intentionally a little offset from center):
+/**
+ * FLOW
+ */
+const flow = makeLatticeAtEquilibrium(80, 32, 1, 0.1, 0);
 const barrierSizeBis = 8;
 for (
-  let y = lattice3bis.y / 2 - barrierSizeBis;
-  y <= lattice3bis.y / 2 + barrierSizeBis;
+  let y = flow.y / 2 - barrierSizeBis;
+  y <= flow.y / 2 + barrierSizeBis;
   y++
 ) {
   const x = 20;
-  lattice3bis.flag[x + y * lattice3bis.x] = Flags.barrier;
+  flow.flag[x + y * flow.x] = Flags.barrier;
 }
 
-for (let y = 1; y < lattice3bis.y - 1; y++) {
-  lattice3bis.flag[1 + y * lattice3bis.x] = Flags.source;
-  lattice3bis.flag[lattice3bis.x - 2 + y * lattice3bis.x] = Flags.source;
+for (let y = 1; y < flow.y - 1; y++) {
+  flow.flag[1 + y * flow.x] = Flags.source;
+  flow.flag[flow.x - 2 + y * flow.x] = Flags.source;
 }
 
-export const Lattice3bis = Template.bind({});
-Lattice3bis.args = {
-  lattice: lattice3bis,
+export const Flow = Template.bind({});
+Flow.args = {
+  lattice: flow,
   gravity: 0,
   viscosity: 0.02,
+  plotType: PlotTypes.curl,
 };
 
-const damBreak = makeLatticeAtEquilibrium(80, 32, 1, 0, 0);
+/**
+ * DAM BREAK
+ */
+const damBreak = makeLatticeAtEquilibrium(80, 45, 1, 0, 0);
 
-for (let y = 16; y < 31; y++) {
-  for (let x = 1; x <= 16; x++) {
+for (let y = 16; y < 44; y++) {
+  for (let x = 1; x <= 31; x++) {
     damBreak.flag[getIndex(damBreak.x, x, y)] = Flags.gas;
   }
 }
 
-for (let y = 1; y < 31; y++) {
-  for (let x = 16; x < 79; x++) {
+for (let y = 1; y < 44; y++) {
+  for (let x = 31; x < 79; x++) {
     damBreak.flag[getIndex(damBreak.x, x, y)] = Flags.gas;
   }
 }
 
 for (let y = 1; y < 16; y++) {
-  damBreak.flag[getIndex(damBreak.x, 15, y)] = Flags.interface;
+  damBreak.flag[getIndex(damBreak.x, 30, y)] = Flags.interface;
 }
-for (let x = 1; x < 16; x++) {
+for (let x = 1; x < 31; x++) {
   damBreak.flag[getIndex(damBreak.x, x, 15)] = Flags.interface;
-}
-
-for (let y = 5; y < 19; y++) {
-  damBreak.flag[getIndex(damBreak.x, 15, y)] = Flags.barrier;
-}
-for (let y = 1; y < 5; y++) {
-  damBreak.flag[getIndex(damBreak.x, 25, y)] = Flags.barrier;
 }
 
 export const DamBreak = Template.bind({});
 DamBreak.args = {
   lattice: damBreak,
+  gravity: 0.003,
+  plotType: PlotTypes.mass,
+};
+
+/**
+ * DAM BREAK 2
+ */
+const damBreak2 = makeLatticeAtEquilibrium(80, 32, 1, 0, 0);
+
+for (let y = 16; y < 31; y++) {
+  for (let x = 1; x <= 16; x++) {
+    damBreak2.flag[getIndex(damBreak2.x, x, y)] = Flags.gas;
+  }
+}
+
+for (let y = 1; y < 31; y++) {
+  for (let x = 16; x < 79; x++) {
+    damBreak2.flag[getIndex(damBreak2.x, x, y)] = Flags.gas;
+  }
+}
+
+for (let y = 1; y < 16; y++) {
+  damBreak2.flag[getIndex(damBreak2.x, 15, y)] = Flags.interface;
+}
+for (let x = 1; x < 16; x++) {
+  damBreak2.flag[getIndex(damBreak2.x, x, 15)] = Flags.interface;
+}
+
+for (let y = 5; y < 19; y++) {
+  damBreak2.flag[getIndex(damBreak2.x, 15, y)] = Flags.barrier;
+}
+for (let y = 1; y < 5; y++) {
+  damBreak2.flag[getIndex(damBreak2.x, 25, y)] = Flags.barrier;
+}
+
+export const DamBreak2 = Template.bind({});
+DamBreak2.args = {
+  lattice: damBreak2,
   gravity: 0.001,
+  plotType: PlotTypes.mass,
 };

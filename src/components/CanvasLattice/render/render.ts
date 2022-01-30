@@ -99,12 +99,12 @@ export function render(
         } else if (plotType == PlotTypes.speed) {
           const speed = Math.sqrt(
             lattice.ux[x + y * xdim] * lattice.ux[x + y * xdim] +
-              lattice.uy[x + y * xdim] * lattice.uy[x + y * xdim],
+            lattice.uy[x + y * xdim] * lattice.uy[x + y * xdim],
           );
           cIndex = Math.round(nColors * (speed * 4 * contrast));
         } else if (plotType == PlotTypes.mass) {
           cIndex = Math.round(
-            nColors * ((lattice.m[x + y * xdim] - 1) * 6 * contrast + 0.5),
+            nColors * ((0.5 - lattice.m[x + y * xdim]) * contrast),
           );
         } else if (plotType == PlotTypes.alpha) {
           cIndex = Math.round(
@@ -130,11 +130,18 @@ export function render(
     }
   }
   //if (pixelGraphics)
-  createImageBitmap(image).then(function(imgBitmap) {
+  createImageBitmap(image).then(function (imgBitmap) {
     context.drawImage(imgBitmap, 0, 0, canvas.width, canvas.height);
+    context.fillStyle = "#000000";
+    context.fillRect(0, 0, 100, 100);
     context.fillStyle = "#ffffff";
     context.fillText(`UPS: ${ups}`, 5, 10);
-    context.fillText(`FPS: ${fps}`, 5, 25);
+    context.fillText(`FPS: ${fps}`, 5, 10 + 15 * 1);
+    context.fillText(`mTot: ${lattice.totalMass.toFixed(2)}`, 5, 10 + 15 * 2);
+    context.fillText(`dMin: ${lattice.minRho.toFixed(2)}`, 5, 10 + 15 * 3);
+    context.fillText(`dMax: ${lattice.maxRho.toFixed(2)}`, 5, 10 + 15 * 4);
+    context.fillText(`fluid: ${lattice.fluidCellCount}`, 5, 10 + 15 * 5);
+    context.fillText(`inter: ${lattice.interfaceCellCount}`, 5, 10 + 15 * 6);
   });
 }
 

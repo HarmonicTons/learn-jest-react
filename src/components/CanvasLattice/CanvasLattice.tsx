@@ -14,12 +14,14 @@ export type CanvasLatticeProps = {
   lattice: Lattice;
   viscosity?: number;
   gravity?: number;
+  plotType?: PlotTypes;
 };
 
 export const CanvasLattice = ({
   lattice: initialLattice,
   viscosity = 0.02,
   gravity = 0.01,
+  plotType = PlotTypes.rho,
 }: CanvasLatticeProps): JSX.Element => {
   const [lattice, setLattice] = useState(cloneDeep(initialLattice));
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -35,7 +37,6 @@ export const CanvasLattice = ({
     const image = getImage(context, lattice.x, lattice.y);
     const colorMap = getColorMap();
     const contrast = 1;
-    const plotType = PlotTypes.rho;
     const _renderer = runRendering(
       colorMap,
       contrast,

@@ -120,6 +120,7 @@ export const collide = (
   rho: number,
   ux: number,
   uy: number,
+  m: number,
   viscosity: number,
   gravity: number,
 ): Distributions => {
@@ -144,7 +145,7 @@ export const collide = (
     SW: SWg,
     S: Sg,
     SE: SEg,
-  } = getGravityForce(gravity, rho, ux, uy);
+  } = getGravityForce(gravity, m, ux, uy);
   const omega = calculateOmega(viscosity);
   return {
     C: clamp(C + omega * (Ceq - C) + Cg, 0, 8 / 9),

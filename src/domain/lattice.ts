@@ -78,6 +78,10 @@ export type Lattice = {
   alpha: Array<number>;
   curl: Array<number>;
   totalMass: number;
+  maxRho: number;
+  minRho: number;
+  fluidCellCount: number;
+  interfaceCellCount: number;
   // meta
   flag: Array<Flags>;
 };
@@ -117,6 +121,10 @@ export const makeLatticeStructure = (x: number, y: number): Lattice => ({
   alpha: [...Array(x * y)].fill(1),
   curl: [...Array(x * y)].fill(0),
   totalMass: 0,
+  maxRho: 0,
+  minRho: 0,
+  fluidCellCount: 0,
+  interfaceCellCount: 0,
   flag: [...Array(x * y)].fill(Flags.barrier),
 });
 
@@ -217,6 +225,7 @@ export const collide = (
       lattice.rho[i],
       lattice.ux[i],
       lattice.uy[i],
+      lattice.m[i],
       viscosity,
       gravity,
     );
@@ -229,6 +238,16 @@ export const collide = (
     distributions.SW[i] = collided.SW;
     distributions.S[i] = collided.S;
     distributions.SE[i] = collided.SE;
+
+    lattice.uy[i] = calculateUy(
+      distributions.NW[i],
+      distributions.N[i],
+      distributions.NE[i],
+      distributions.SW[i],
+      distributions.S[i],
+      distributions.SE[i],
+      lattice.rho[i],
+    );
   });
 };
 
@@ -472,12 +491,16 @@ export const flagEvolution = (lattice: Lattice, beta = 0.001): void => {
 export const computeCurl = (lattice: Lattice): void => {
   const getI = (x: number, y: number) => getIndex(lattice.x, x, y);
   let totalMass = 0;
+  let maxRho = 1;
+  let minRho = 1;
   forEachCellOfLattice(lattice, (i, x, y) => {
     if (
       lattice.flag[i] === Flags.fluid ||
       lattice.flag[i] === Flags.interface
     ) {
       totalMass += lattice.m[i];
+      maxRho = Math.max(maxRho, lattice.rho[i]);
+      minRho = Math.min(minRho, lattice.rho[i]);
     }
     lattice.curl[i] =
       lattice.uy[getI(x + 1, y)] -
@@ -486,6 +509,10 @@ export const computeCurl = (lattice: Lattice): void => {
       lattice.ux[getI(x, y - 1)];
   });
   lattice.totalMass = totalMass;
+  lattice.maxRho = maxRho;
+  lattice.minRho = minRho;
+  lattice.fluidCellCount = lattice.flag.filter(f => f === Flags.fluid).length;
+  lattice.interfaceCellCount = lattice.flag.filter(f => f === Flags.interface).length;
 };
 
 /**

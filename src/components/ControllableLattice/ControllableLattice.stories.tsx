@@ -53,7 +53,7 @@ const lattice3 = makeLatticeAtEquilibrium(6, 5, 1, 0, 0);
 export const Lattice3 = Template.bind({});
 Lattice3.args = {
   lattice: lattice3,
-  gravity: 0.02,
+  gravity: 0.002,
 };
 
 const lattice4 = makeLatticeAtEquilibrium(6, 5, 1, 0.1, 0);
@@ -62,7 +62,7 @@ lattice4.flag[15] = Flags.barrier;
 export const Lattice4 = Template.bind({});
 Lattice4.args = {
   lattice: lattice4,
-  gravity: 0.02,
+  gravity: 0.002,
 };
 
 const damBreak = makeLatticeAtEquilibrium(6, 5, 1, 0, 0);
@@ -82,7 +82,7 @@ damBreak.flag[22] = Flags.gas;
 export const DamBreak = Template.bind({});
 DamBreak.args = {
   lattice: damBreak,
-  gravity: 0.02,
+  gravity: 0.002,
 };
 
 const lake = makeLatticeAtEquilibrium(6, 5, 1, 0, 0);
@@ -106,7 +106,7 @@ lake.flag[22] = Flags.gas;
 export const Lake = Template.bind({});
 Lake.args = {
   lattice: lake,
-  gravity: 0.02,
+  gravity: 0.002,
 };
 
 const freeFall = makeLatticeAtEquilibrium(7, 8, 1, 0, 0);
@@ -159,7 +159,7 @@ freeFall.flag[12] = Flags.gas;
 export const FreeFall = Template.bind({});
 FreeFall.args = {
   lattice: freeFall,
-  gravity: 0.02,
+  gravity: 0.002,
 };
 
 const inversed = makeLatticeAtEquilibrium(6, 5, 1, 0, 0);
@@ -183,5 +183,5 @@ inversed.alpha[10] = 0.5;
 export const Inversed = Template.bind({});
 Inversed.args = {
   lattice: inversed,
-  gravity: 0.02,
+  gravity: 0.002,
 };
