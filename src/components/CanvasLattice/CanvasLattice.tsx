@@ -1,5 +1,5 @@
 import { cloneDeep } from "lodash";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Lattice, run as runSimulation } from "../../domain/lattice";
 import { Runner } from "../../domain/Runner";
 import { getColorMap } from "./render/colorMap";
@@ -27,6 +27,10 @@ export const CanvasLattice = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [runner] = useState(runSimulation(lattice, viscosity, gravity));
   const [renderer, setRenderer] = useState<Runner>();
+
+  const handleClickExport = useCallback(() => {
+    console.log(JSON.stringify(lattice));
+  }, []);
 
   useEffect(() => {
     if (!canvasRef || !canvasRef.current) {
@@ -66,6 +70,7 @@ export const CanvasLattice = ({
   return (
     <>
       <canvas ref={canvasRef} width="800" height="320" />
+      <input type="button" onClick={handleClickExport} value="export" />
     </>
   );
 };

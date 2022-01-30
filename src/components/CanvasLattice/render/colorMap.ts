@@ -47,7 +47,7 @@ export const getColorMap = (nColors = 400): ColorMap => {
   colorMap.redList[nColors + 1] = 0;
   colorMap.greenList[nColors + 1] = 0;
   colorMap.blueList[nColors + 1] = 0;
-  // red interface
+  // red interfaces
   colorMap.redList[nColors + 2] = 255;
   colorMap.greenList[nColors + 2] = 0;
   colorMap.blueList[nColors + 2] = 0;
@@ -55,6 +55,10 @@ export const getColorMap = (nColors = 400): ColorMap => {
   colorMap.redList[nColors + 3] = 255;
   colorMap.greenList[nColors + 3] = 255;
   colorMap.blueList[nColors + 3] = 255;
+  // purple sources
+  colorMap.redList[nColors + 4] = 255;
+  colorMap.greenList[nColors + 4] = 0;
+  colorMap.blueList[nColors + 4] = 255;
 
   return colorMap;
 };
