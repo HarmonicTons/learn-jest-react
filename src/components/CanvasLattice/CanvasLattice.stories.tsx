@@ -188,7 +188,7 @@ CommunicatingVessels.args = {
   lattice: communicatingVessels,
   gravity: 0.001,
   plotType: PlotTypes.mass,
-  viscosity: 0.005
+  viscosity: 0.005,
 };
 
 /**
@@ -209,7 +209,7 @@ DamBreak2.args = {
   lattice: damBreak2,
   gravity: 0.001,
   plotType: PlotTypes.mass,
-  viscosity: 0.005
+  viscosity: 0.005,
 };
 
 /**
@@ -227,7 +227,7 @@ DamOverflow.args = {
   lattice: damOverflow,
   gravity: 0.001,
   plotType: PlotTypes.mass,
-  viscosity: 0.005
+  viscosity: 0.005,
 };
 
 /**
@@ -256,5 +256,44 @@ Source.args = {
   lattice: source,
   gravity: 0.001,
   plotType: PlotTypes.mass,
-  viscosity: 0.005
+  viscosity: 0.005,
+};
+
+/**
+ * DROPLET
+ */
+const droplet = makeLatticeAtEquilibrium(33, 60, 1, 0, 0);
+for (let y = 16; y < 59; y++) {
+  for (let x = 1; x < 32; x++) {
+    droplet.flag[getIndex(droplet.x, x, y)] = Flags.gas;
+  }
+}
+for (let x = 1; x < 32; x++) {
+  droplet.flag[getIndex(droplet.x, x, 15)] = Flags.interface;
+}
+const h = 40;
+const l = 16;
+const a = 2;
+for (let y = h - a; y <= h + a; y++) {
+  for (let x = l - a; x <= l + a; x++) {
+    droplet.flag[getIndex(droplet.x, x, y)] = Flags.fluid;
+  }
+}
+for (let y = h - a; y <= h + a; y++) {
+  droplet.flag[getIndex(droplet.x, l - a, y)] = Flags.interface;
+  droplet.flag[getIndex(droplet.x, l + a, y)] = Flags.interface;
+}
+for (let x = l - a; x <= l + a; x++) {
+  droplet.flag[getIndex(droplet.x, x, h - a)] = Flags.interface;
+  droplet.flag[getIndex(droplet.x, x, h + a)] = Flags.interface;
+}
+
+export const Droplet = Template.bind({});
+Droplet.args = {
+  lattice: droplet,
+  gravity: 0.001,
+  viscosity: 0.02,
+  plotType: PlotTypes.mass,
+  width: 330,
+  height: 600,
 };

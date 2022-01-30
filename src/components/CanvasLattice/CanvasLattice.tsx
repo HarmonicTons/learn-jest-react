@@ -15,6 +15,8 @@ export type CanvasLatticeProps = {
   viscosity?: number;
   gravity?: number;
   plotType?: PlotTypes;
+  width?: number;
+  height?: number;
 };
 
 export const CanvasLattice = ({
@@ -22,6 +24,8 @@ export const CanvasLattice = ({
   viscosity = 0.02,
   gravity = 0.01,
   plotType = PlotTypes.rho,
+  width = 800,
+  height = 320,
 }: CanvasLatticeProps): JSX.Element => {
   const [lattice, setLattice] = useState(cloneDeep(initialLattice));
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -69,7 +73,7 @@ export const CanvasLattice = ({
 
   return (
     <>
-      <canvas ref={canvasRef} width="800" height="320" />
+      <canvas ref={canvasRef} width={width} height={height} />
       <input type="button" onClick={handleClickExport} value="export" />
     </>
   );
