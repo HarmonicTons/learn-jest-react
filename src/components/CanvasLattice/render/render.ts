@@ -101,7 +101,7 @@ export function render(
         } else if (plotType == PlotTypes.speed) {
           const speed = Math.sqrt(
             lattice.ux[x + y * xdim] * lattice.ux[x + y * xdim] +
-            lattice.uy[x + y * xdim] * lattice.uy[x + y * xdim],
+              lattice.uy[x + y * xdim] * lattice.uy[x + y * xdim],
           );
           cIndex = Math.round(nColors * (speed * 4 * contrast));
         } else if (plotType == PlotTypes.mass) {
@@ -132,7 +132,7 @@ export function render(
     }
   }
   //if (pixelGraphics)
-  createImageBitmap(image).then(function (imgBitmap) {
+  createImageBitmap(image).then(function(imgBitmap) {
     context.drawImage(imgBitmap, 0, 0, canvas.width, canvas.height);
     context.fillStyle = "#000000";
     context.fillRect(0, 0, 100, 100);

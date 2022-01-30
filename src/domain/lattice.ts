@@ -512,7 +512,9 @@ export const computeCurl = (lattice: Lattice): void => {
   lattice.maxRho = maxRho;
   lattice.minRho = minRho;
   lattice.fluidCellCount = lattice.flag.filter(f => f === Flags.fluid).length;
-  lattice.interfaceCellCount = lattice.flag.filter(f => f === Flags.interface).length;
+  lattice.interfaceCellCount = lattice.flag.filter(
+    f => f === Flags.interface,
+  ).length;
 };
 
 /**
