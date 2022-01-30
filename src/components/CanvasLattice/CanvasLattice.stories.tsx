@@ -118,7 +118,7 @@ HalfFlow.args = {
 };
 
 /**
- * DAM BREAK
+ * DAM
  */
 const dam = makeLatticeAtEquilibrium(80, 45, 1, 0, 0);
 
@@ -163,8 +163,8 @@ export const DamBreak = Template.bind({});
 DamBreak.args = {
   lattice: damBreak,
   gravity: 0.001,
+  viscosity: 0.01,
   plotType: PlotTypes.mass,
-  viscosity: 0.02
 };
 
 /**

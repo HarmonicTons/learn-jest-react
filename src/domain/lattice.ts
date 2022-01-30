@@ -287,38 +287,29 @@ const streamFromDirection = (
     (flagFrom === Flags.gas || flagFrom === Flags.barrier)
   ) {
     return {
-      distribution: gasDistributions[oppositeDir],
+      distribution: gasDistributions[oppositeDir] +
+        gasDistributions[dir] -
+        lattice.distributions[dir][iTo],
       deltaMass: 0,
       oppositeDir,
     };
   }
 
+  const distribution = lattice.distributions[oppositeDir][iFrom];
+  const deltaMass =
+    lattice.distributions[oppositeDir][iFrom] -
+    lattice.distributions[dir][iTo];
   // (fluid > fluid) | (interface > fluid) | (fluid > interface)
   if (
     (flagTo === Flags.fluid && flagFrom === Flags.fluid) ||
     (flagTo === Flags.fluid && flagFrom === Flags.interface) ||
     (flagTo === Flags.interface && flagFrom === Flags.fluid)
   ) {
-    const distribution = lattice.distributions[oppositeDir][iFrom];
-    const deltaMass =
-      lattice.distributions[oppositeDir][iFrom] -
-      lattice.distributions[dir][iTo];
     return { distribution, deltaMass, oppositeDir };
   }
 
   // interface > interface
   if (flagTo === Flags.interface && flagFrom === Flags.interface) {
-    // HACK
-    if (dir === Direction.N || dir === Direction.S) {
-      const distribution = lattice.distributions[oppositeDir][iFrom];
-      const deltaMass =
-        lattice.distributions[oppositeDir][iFrom] -
-        lattice.distributions[dir][iTo];
-      const ci = (1 / 2) * (lattice.alpha[iTo] + lattice.alpha[iFrom]);
-      return { distribution, deltaMass: ci * deltaMass, oppositeDir };
-    }
-    const distribution = gasDistributions[oppositeDir];
-    const deltaMass = 0;
     const ci = (1 / 2) * (lattice.alpha[iTo] + lattice.alpha[iFrom]);
     return { distribution, deltaMass: ci * deltaMass, oppositeDir };
   }
@@ -338,7 +329,7 @@ export const stream = (lattice: Lattice): void => {
     }
 
     const gasDistributions = getEquilibriumDistribution(
-      // TODO get gas density from pressure equation
+      // TODO get gas density from its pressure
       1,
       lattice.ux[i],
       lattice.uy[i],
@@ -412,6 +403,9 @@ export const flagEvolution = (lattice: Lattice, beta = 0.001): void => {
       lattice.alpha[i] = 1;
 
       Object.values(Direction).forEach(dir => {
+        if (dir === Direction.C) {
+          return;
+        }
         const { x: dx, y: dy } = DirectionRecord[dir];
         const i2 = getIndex(lattice.x, x + dx, y + dy);
         if (lattice.flag[i2] === Flags.interface) {
@@ -427,7 +421,7 @@ export const flagEvolution = (lattice: Lattice, beta = 0.001): void => {
           lattice.alpha[i2] = 0;
 
           // TODO average the macro around the new cell
-          const avgRho = 1;
+          const avgRho = lattice.rho[i];
           const avgUx = lattice.ux[i];
           const avgUy = lattice.uy[i];
           const distributions = getEquilibriumDistribution(
@@ -450,6 +444,7 @@ export const flagEvolution = (lattice: Lattice, beta = 0.001): void => {
           lattice.alpha[i] = lattice.m[i] / lattice.rho[i];
         });
       }
+      return;
     }
 
     if (lattice.alpha[i] < -beta) {
@@ -459,6 +454,9 @@ export const flagEvolution = (lattice: Lattice, beta = 0.001): void => {
       const neighboorInterfaceCells: number[] = [];
 
       Object.values(Direction).forEach(dir => {
+        if (dir === Direction.C) {
+          return;
+        }
         const { x: dx, y: dy } = DirectionRecord[dir];
         const i2 = getIndex(lattice.x, x + dx, y + dy);
         if (lattice.flag[i2] === Flags.interface) {
@@ -479,6 +477,36 @@ export const flagEvolution = (lattice: Lattice, beta = 0.001): void => {
           lattice.alpha[i] = lattice.m[i] / lattice.rho[i];
         });
       }
+      return;
+    }
+
+    // look for isolated interface cells
+    let isIsolatedInGas = true;
+    let isIsolatedInFluid = true;
+    for (let dir of Object.values(Direction)) {
+      if (dir === Direction.C) {
+        continue;
+      }
+      const { x: dx, y: dy } = DirectionRecord[dir];
+      const i2 = getIndex(lattice.x, x + dx, y + dy);
+      if (lattice.flag[i2] === Flags.fluid || lattice.flag[i2] === Flags.interface) {
+        isIsolatedInGas = false;
+      }
+      if (lattice.flag[i2] === Flags.gas || lattice.flag[i2] === Flags.interface) {
+        isIsolatedInFluid = false;
+      }
+    }
+    if (isIsolatedInGas) {
+      lattice.flag[i] = Flags.gas;
+      // TODO distribute the excess mass to all interface cells
+      // const excessMass = lattice.m[i];
+    }
+    if (isIsolatedInFluid) {
+      lattice.flag[i] = Flags.fluid;
+      // TODO distribute the mass debt to all interface cells
+      // const massDebt = lattice.rho[i] - lattice.m[i];
+      lattice.m[i] = lattice.rho[i];
+      lattice.alpha[i] = 1;
     }
   });
 

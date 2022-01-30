@@ -7,6 +7,7 @@ import { CellPart } from "./CellPart/CellPart";
 const getU = (ux: number, uy: number) => Math.sqrt(ux ** 2 + uy ** 2);
 
 type CellStylesProps = {
+  u: number;
   ux: number;
   uy: number;
   alpha: number;
@@ -52,6 +53,11 @@ const useStyles = createUseStyles({
       const a = -Math.sign(uy) * Math.acos(ux / getU(ux, uy));
       return `rotate(${a}rad)`;
     },
+    opacity: ({u}: CellStylesProps) => {
+      if (u < 0.01) { return 0 }
+      if (u < 0.05) { return 0.4 }
+      return 0.7;
+    }
   },
   "@keyframes anim": {
     "0%": {
@@ -125,9 +131,9 @@ export const Cell = ({
   onClick,
   isSelected = false,
 }: CellProps): JSX.Element => {
-  const classNames = useStyles({ ux, uy, isSelected, flag, alpha, rho });
-  const getArrowSize = useCallback((d: number) => d * scaleArrow, [scaleArrow]);
   const u = useMemo(() => getU(ux, uy), [ux, uy]);
+  const classNames = useStyles({ u, ux, uy, isSelected, flag, alpha, rho });
+  const getArrowSize = useCallback((d: number) => d * scaleArrow, [scaleArrow]);
   return (
     <div
       className={classNames.cell}
@@ -178,8 +184,8 @@ export const Cell = ({
               percentWidth={u / 0.1}
               color={
                 flag === Flags.source
-                  ? "rgba(0, 255, 0, 0.7)"
-                  : "rgba(255, 0, 0, 0.7)"
+                  ? "rgb(0, 255, 0)"
+                  : "rgb(255, 0, 0)"
               }
             />
           </div>
