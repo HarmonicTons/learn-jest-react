@@ -164,6 +164,7 @@ DamBreak.args = {
   lattice: damBreak,
   gravity: 0.001,
   plotType: PlotTypes.mass,
+  viscosity: 0.02
 };
 
 /**
@@ -187,6 +188,7 @@ CommunicatingVessels.args = {
   lattice: communicatingVessels,
   gravity: 0.001,
   plotType: PlotTypes.mass,
+  viscosity: 0.005
 };
 
 /**
@@ -207,6 +209,7 @@ DamBreak2.args = {
   lattice: damBreak2,
   gravity: 0.001,
   plotType: PlotTypes.mass,
+  viscosity: 0.005
 };
 
 /**
@@ -224,6 +227,7 @@ DamOverflow.args = {
   lattice: damOverflow,
   gravity: 0.001,
   plotType: PlotTypes.mass,
+  viscosity: 0.005
 };
 
 /**
@@ -252,4 +256,5 @@ Source.args = {
   lattice: source,
   gravity: 0.001,
   plotType: PlotTypes.mass,
+  viscosity: 0.005
 };
